@@ -15,9 +15,11 @@ const Login = () => {
     e.preventDefault();
     try {
       const res = await api.post('/auth/login', form);
-      const { token, email } = res.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('email', email);
+      const { password, email } = res.data;
+      localStorage.setItem('token', email);
+      localStorage.setItem('email', password);
+      console.log('Login successful:', password, email);
+
       localStorage.setItem('roles', JSON.stringify(res.data.roles));
       localStorage.setItem('activeRole', res.data.roles[0]); // default
       alert('Login successful!');
