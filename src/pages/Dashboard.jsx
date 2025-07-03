@@ -27,9 +27,9 @@ const Dashboard = () => {
           <button onClick={() => navigate('/entry-slip')}>Apply for Entry Slip</button>
         </>
       )}
-      {activeRole === 'FLA' && <button>View Pending Approvals (FLA)</button>}
-      {activeRole === 'SLA' && <button>View Pending Approvals (SLA)</button>}
-      {activeRole === 'HR' && <button>Final HR Approvals</button>}
+      {activeRole === 'FLA' && <button onClick={()=> navigate('/fla-dashboard')}>View Pending Approvals (FLA)</button>}
+      {activeRole === 'SLA' && <button onClick={()=> navigate('/sla-dashboard')} >View Pending Approvals (SLA)</button>}
+      {activeRole === 'HR' &&  <button onClick={()=> navigate('/hr-dashboard')} >View HR Approvals</button>}
     </div>
   );
 };

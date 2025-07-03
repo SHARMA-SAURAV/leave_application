@@ -1,0 +1,130 @@
+import React, { useEffect, useState } from 'react';
+import api from '../services/api';
+
+const FLAPanel = () => {
+  const [entrySlips, setEntrySlips] = useState([]);
+  const [leaveApps, setLeaveApps] = useState([]);
+  const [slaUsers, setSlaUsers] = useState([]);
+  const [selectedSLA, setSelectedSLA] = useState({});
+
+  const fetchData = async () => {
+    try {
+      const [entryRes, leaveRes] = await Promise.all([
+        api.get('/entry-slip/pending/fla'),
+        api.get('/leave/pending/fla')
+      ]);
+      setEntrySlips(entryRes.data);
+      setLeaveApps(leaveRes.data);
+    } catch (err) {
+      console.error('Error fetching FLA data:', err);
+    }
+  };
+
+  const fetchSLAs = async () => {
+    try {
+      const res = await api.get('/users?role=SLA');
+      setSlaUsers(res.data);
+    } catch (err) {
+      console.error('Failed to fetch SLA users', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    fetchSLAs();
+  }, []);
+
+  const handleSLAChange = (slipId, email) => {
+    setSelectedSLA(prev => ({
+      ...prev,
+      [slipId]: email
+    }));
+  };
+
+  const handleEntrySlipAction = async (id, action) => {
+    try {
+      if (action === 'approve') {
+        const slaEmail = selectedSLA[id];
+        if (!slaEmail) {
+          alert('Please select an SLA before approving.');
+          return;
+        }
+        {console.log(`Approving entry slip ${id} with SLA: ${slaEmail}`);}
+        await api.put(`/entry-slip/${action}/${id}`, null, {
+          params: {
+            role: 'FLA',
+            nextApproverEmail: slaEmail
+          }
+        });
+      } else {
+        await api.put(`/entry-slip/${action}/${id}?role=FLA`);
+      }
+      alert(`Entry slip ${action}ed successfully`);
+      fetchData();
+    } catch (err) {
+      console.error(`Failed to ${action} entry slip`, err);
+    }
+  };
+
+  const handleLeaveAction = async (id, action) => {
+    try {
+      await api.put(`/leave/${action}/${id}?role=FLA`);
+      alert(`Leave ${action}ed successfully`);
+      fetchData();
+    } catch (err) {
+      console.error(`Failed to ${action} leave`, err);
+    }
+  };
+
+  return (
+    <div>
+      <h2>FLA Panel – Entry Slips</h2>
+      {entrySlips.length === 0 ? (
+        <p>No pending entry slips for FLA.</p>
+      ) : (
+        entrySlips.map((slip) => (
+          <div key={slip.id} style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '10px' }}>
+            <p><strong>Created By:</strong> {slip.createdBy?.email}</p>
+            <p><strong>Date:</strong> {slip.date}</p>
+            <p><strong>Time:</strong> {slip.inTime} - {slip.outTime}</p>
+            <p><strong>Reason:</strong> {slip.reason}</p>
+
+            <label>Select SLA Approver:</label>
+            <select
+              value={selectedSLA[slip.id] || ''}
+              onChange={(e) => handleSLAChange(slip.id, e.target.value)}
+            >
+              <option value="">Select SLA</option>
+              {slaUsers.map(sla => (
+                <option key={sla.email} value={sla.email}>
+                  {sla.name} ({sla.email})
+                </option>
+              ))}
+            </select>
+
+            <button onClick={() => handleEntrySlipAction(slip.id, 'approve')}>Approve</button>
+            <button onClick={() => handleEntrySlipAction(slip.id, 'reject')}>Reject</button>
+          </div>
+        ))
+      )}
+
+      <h2>FLA Panel – Leave Applications</h2>
+      {leaveApps.length === 0 ? (
+        <p>No pending leave applications for FLA.</p>
+      ) : (
+        leaveApps.map((leave) => (
+          <div key={leave.id} style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '10px' }}>
+            <p><strong>Email:</strong> {leave.email}</p>
+            <p><strong>Dates:</strong> {leave.fromDate} to {leave.toDate}</p>
+            <p><strong>Leave Type:</strong> {leave.leaveType} ({leave.dayType})</p>
+            <p><strong>Reason:</strong> {leave.reason}</p>
+            <button onClick={() => handleLeaveAction(leave.id, 'approve')}>Approve</button>
+            <button onClick={() => handleLeaveAction(leave.id, 'reject')}>Reject</button>
+          </div>
+        ))
+      )}
+    </div>
+  );
+};
+
+export default FLAPanel;

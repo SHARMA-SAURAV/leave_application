@@ -29,6 +29,9 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import ApplyLeave from './pages/ApplyLeave';
 import ApplyEntrySlip from './pages/ApplyEntrySlip';
+import SLAPanel from './pages/SLAPanel';
+import HRPanel from './pages/HRPanel';
+import FLAPanel from './pages/FLAPanel';
 
 function App() {
   return (
@@ -39,6 +42,10 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/apply-leave" element={<ApplyLeave />} />
+      <Route path="/sla-dashboard" element={<SLAPanel />} />
+      <Route path="/hr-dashboard" element={<HRPanel />} />
+      <Route path="/fla-dashboard" element={<FLAPanel />} />
+
       <Route path="/entry-slip" element={<ApplyEntrySlip />} />
       </Routes>
     </Router>

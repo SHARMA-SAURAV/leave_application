@@ -31,7 +31,7 @@ const ApplyEntrySlip = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post(`/entry-slip/apply?targetLevel=${approverRole}`, {
+      await api.post( `/entry-slip/apply?targetLevel=${approverRole}&approverEmail=${form.approverEmail}`, {
         ...form
       });
       alert('Entry slip submitted!');
