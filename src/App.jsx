@@ -32,10 +32,14 @@ import ApplyEntrySlip from './pages/ApplyEntrySlip';
 import SLAPanel from './pages/SLAPanel';
 import HRPanel from './pages/HRPanel';
 import FLAPanel from './pages/FLAPanel';
+import Navbar from './components/Navbar';
+import LeaveStatus from './pages/LeaveStatus';
+import EntrySlipStatus from './pages/EntrySlipStatus';
 
 function App() {
   return (
     <Router>
+      <Navbar />
       <Routes>
         <Route path="/" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -45,6 +49,8 @@ function App() {
       <Route path="/sla-dashboard" element={<SLAPanel />} />
       <Route path="/hr-dashboard" element={<HRPanel />} />
       <Route path="/fla-dashboard" element={<FLAPanel />} />
+      <Route path="/entry-slip-status" element={<EntrySlipStatus />} />
+      <Route path="/leave-status" element={<LeaveStatus />} />
 
       <Route path="/entry-slip" element={<ApplyEntrySlip />} />
       </Routes>
