@@ -149,25 +149,35 @@
 
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import { FlaApprovalCard } from '../components/LeaveRequestTables';
+import { leaveApproveApi } from '../services/leave';
+
 
 const FLAPanel = () => {
   const [entrySlips, setEntrySlips] = useState([]);
-  const [leaveApps, setLeaveApps] = useState([]);
+  const [leaveRequests, setLeaveRequests] = useState([]);
   const [slaUsers, setSlaUsers] = useState([]);
   const [selectedSLA, setSelectedSLA] = useState({});
 
   const fetchData = async () => {
     try {
-      const [entryRes, leaveRes] = await Promise.all([
+      const [entryRes] = await Promise.all([
         api.get('/entry-slip/pending/fla'),
-        // api.get('/leave/pending/fla')
       ]);
       setEntrySlips(entryRes.data);
-      setLeaveApps(leaveRes.data);
     } catch (err) {
       console.error('Error fetching FLA data:', err);
     }
   };
+
+  const fetchLeaveRequests = async () => {
+    try {
+      const res = await api.get('/leave/fla/all');
+      setLeaveRequests(res.data);
+    } catch (err) {
+      console.error('Error fetching leave applications:', err);
+    }
+  }
 
   const fetchSLAs = async () => {
     try {
@@ -180,6 +190,7 @@ const FLAPanel = () => {
 
   useEffect(() => {
     fetchData();
+    fetchLeaveRequests();
     fetchSLAs();
   }, []);
 
@@ -211,15 +222,15 @@ const FLAPanel = () => {
     }
   };
 
-  const handleLeaveAction = async (id, action) => {
-    try {
-      await api.put(`/leave/${action}/${id}?role=FLA`);
-      alert(`Leave ${action}ed successfully`);
-      fetchData();
-    } catch (err) {
-      console.error(`Failed to ${action} leave`, err);
+  const handleLeaveApproval = async (id, action, slaId, substitute) => {
+    const result = await leaveApproveApi(id, "fla", action, {
+      slaSelected: slaId,
+      substituteSelected: substitute,
+    });
+    if (result) {
+      setLeaveRequests((prev) => prev.filter((request) => request.id !== id));
     }
-  };
+  }
 
   return (
     <div className="container mt-4">
@@ -266,29 +277,17 @@ const FLAPanel = () => {
         ))
       )}
 
-      <h3 className="text-primary mt-5 mb-4">FLA Panel – Leave Applications</h3>
-
-      {leaveApps.length === 0 ? (
+      <h3 className="text-primary mb-4">Leave Requests</h3>
+      {leaveRequests.length === 0 ? (
         <p className="text-muted">No pending leave applications for FLA.</p>
       ) : (
-        leaveApps.map((leave) => (
-          <div key={leave.id} className="card shadow-sm mb-4">
-            <div className="card-body">
-              <h5 className="card-title text-dark">Leave Application</h5>
-              <p><strong>Email:</strong> {leave.email}</p>
-              <p><strong>Dates:</strong> {leave.fromDate} to {leave.toDate}</p>
-              <p><strong>Type:</strong> {leave.leaveType} ({leave.dayType})</p>
-              <p><strong>Reason:</strong> {leave.reason}</p>
-              <div className="d-flex gap-2">
-                <button className="btn btn-success" onClick={() => handleLeaveAction(leave.id, 'approve')}>
-                  <i className="fas fa-check-circle me-1"></i> Approve
-                </button>
-                <button className="btn btn-danger" onClick={() => handleLeaveAction(leave.id, 'reject')}>
-                  <i className="fas fa-times-circle me-1"></i> Reject
-                </button>
-              </div>
-            </div>
-          </div>
+        leaveRequests.map((request) => (
+          <FlaApprovalCard
+            key={request.id}
+            request={request}
+            action={handleLeaveApproval}
+            approvers={slaUsers}
+          />
         ))
       )}
     </div>
