@@ -1,30 +1,43 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import { HrApprovalCard, HrApprovedCard } from '../components/LeaveRequestTables';
+import { leaveApproveApi } from '../services/leave';
 import jsPDF from 'jspdf';
-// import 'jspdf-autotable';
-// import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+
 
 
 const HRPanel = () => {
   const [entrySlips, setEntrySlips] = useState([]);
-  const [leaveApps, setLeaveApps] = useState([]);
+  const [leaveRequests, setLeaveRequests] = useState([]);
+  const [approvedLeaveRequests, setApprovedLeaveRequests] = useState([]);
   const [view, setView] = useState('pending'); // 'pending' or 'approved'
+
+
 
   const fetchData = async () => {
     try {
       const entryRes = await api.get(view === 'pending' ? '/entry-slip/pending/hr' : '/entry-slip/approved');
       setEntrySlips(entryRes.data);
-
-      const leaveRes = await api.get(view === 'pending' ? '/leave/pending/hr' : '/leave/approved');
-      setLeaveApps(leaveRes.data);
     } catch (err) {
       console.error('Error fetching HR data:', err);
     }
   };
 
+  const fetchLeaveRequests = async () => {
+    try {
+      const pendingRequests = await api.get('/leave/hr/all');
+      const approvedRequests = await api.get('/leave/hr/approved');
+      setLeaveRequests(pendingRequests.data);
+      setApprovedLeaveRequests(approvedRequests.data);
+    } catch (err) {
+      console.error('Error fetching leave applications:', err);
+    }
+  };
+
   useEffect(() => {
     fetchData();
+    fetchLeaveRequests();
   }, [view]);
 
   const handleEntrySlipAction = async (id, action) => {
@@ -37,47 +50,51 @@ const HRPanel = () => {
     }
   };
 
-  const handleLeaveAction = async (id, action) => {
-    try {
-      await api.put(`/leave/${action}/${id}?role=HR`);
-      alert(`Leave ${action}ed successfully`);
-      fetchData();
-    } catch (err) {
-      console.error(`Failed to ${action} leave`, err);
-    }
+  // const handleLeaveAction = async (id, action) => {
+  //   try {
+  //     await api.put(`/leave/${action}/${id}?role=HR`);
+  //     alert(`Leave ${action}ed successfully`);
+  //     fetchData();
+  //   } catch (err) {
+  //     console.error(`Failed to ${action} leave`, err);
+  //   }
+  // };
+  const downloadEntrySlipPDF = (slip) => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text('Entry Slip Details', 14, 20);
+
+    autoTable(doc, {
+      startY: 30,
+      body: [
+        ['Created By', slip.createdBy?.name || 'N/A'],
+        ['Email', slip.createdBy?.email || 'N/A'],
+        ['Department', slip.createdBy?.department || 'N/A'],
+        ['Designation', slip.createdBy?.designation || 'N/A'],
+        ['Date', slip.date],
+        ['Time', `${slip.inTime} - ${slip.outTime}`],
+        ['Reason', slip.reason],
+        ['Status', slip.status],
+        ['FLA Approver', slip.approvedByFLA?.name || 'N/A'],
+        ['SLA Approver', slip.approvedBySLA?.name || 'N/A'],
+        ['HR Approver', slip.approvedByHR?.name || 'N/A'],
+      ]
+    });
+
+    doc.save(`entry-slip-${slip.id}.pdf`);
   };
-const downloadEntrySlipPDF = (slip) => {
-  const doc = new jsPDF();
-  doc.setFontSize(14);
-  doc.text('Entry Slip Details', 14, 20);
-
-  autoTable(doc, {
-    startY: 30,
-    body: [
-      ['Created By', slip.createdBy?.name || 'N/A'],
-      ['Email', slip.createdBy?.email || 'N/A'],
-      ['Department', slip.createdBy?.department || 'N/A'],
-      ['Designation', slip.createdBy?.designation || 'N/A'],
-      ['Date', slip.date],
-      ['Time', `${slip.inTime} - ${slip.outTime}`],
-      ['Reason', slip.reason],
-      ['Status', slip.status],
-      ['FLA Approver', slip.approvedByFLA?.name || 'N/A'],
-      ['SLA Approver', slip.approvedBySLA?.name || 'N/A'],
-      ['HR Approver', slip.approvedByHR?.name || 'N/A'],
-    ]
-  });
-
-  doc.save(`entry-slip-${slip.id}.pdf`);
-};
 
 
   const downloadLeavePDF = (leave) => {
     const doc = new jsPDF();
     doc.setFontSize(14);
     doc.text('Leave Application Details', 14, 20);
-
-    doc.autoTable({
+    const types = [];
+    if (leave.clLeaves > 0) types.push("CL: " + leave.clLeaves);
+    if (leave.plLeaves > 0) types.push("PL: " + leave.plLeaves);
+    if (leave.rhLeaves > 0) types.push("RH: " + leave.rhLeaves);
+    if (leave.otherLeaves > 0) types.push("Other: " + leave.otherLeaves);
+    autoTable(doc, {
       startY: 30,
       body: [
         ['Employee Name', leave?.requestedBy?.name || 'N/A'],
@@ -85,16 +102,23 @@ const downloadEntrySlipPDF = (slip) => {
         ['Start Date', leave.startDate],
         ['End Date', leave.endDate],
         ['Reason', leave.reason],
-        ['Type', `${leave.leaveType || ''} (${leave.dayType || ''})`],
+        ['Substitute', leave.substitute || 'N/A'],
+        ['Type', types.join(', ')],
         ['Status', leave.status],
         ['FLA Approver', leave.flaApprover?.name || 'N/A'],
         ['SLA Approver', leave.slaApprover?.name || 'N/A'],
-        ['HR Approver', leave.hrApprover?.name || 'N/A'],
       ]
     });
-
     doc.save(`leave-application-${leave.id}.pdf`);
   };
+
+
+  const handleLeaveApproval = async (id, action) => {
+    const result = await leaveApproveApi(id, "hr", action);
+    if (result) {
+      setLeaveRequests((prev) => prev.filter((request) => request.id !== id));
+    }
+  }
 
   return (
     <div className="container mt-4">
@@ -146,36 +170,34 @@ const downloadEntrySlipPDF = (slip) => {
         ))
       )}
 
-      <h5 className="text-secondary mt-5">Leave Applications</h5>
-      {leaveApps.length === 0 ? (
-        <p className="text-muted">No {view} leave applications.</p>
-      ) : (
-        leaveApps.map((leave) => (
-          <div key={leave.id} className="card shadow-sm mb-4">
-            <div className="card-body">
-              <p><strong>Requested By:</strong> {leave?.requestedBy?.name} ({leave?.requestedBy?.email})</p>
-              <p><strong>Dates:</strong> {leave.startDate} to {leave.endDate}</p>
-              <p><strong>Type:</strong> {leave.leaveType} ({leave.dayType})</p>
-              <p><strong>Reason:</strong> {leave.reason}</p>
-
-              {view === 'pending' ? (
-                <div className="d-flex gap-2 mt-3">
-                  <button className="btn btn-success" onClick={() => handleLeaveAction(leave.id, 'approve')}>
-                    <i className="fas fa-check me-1"></i> Approve
-                  </button>
-                  <button className="btn btn-danger" onClick={() => handleLeaveAction(leave.id, 'reject')}>
-                    <i className="fas fa-times me-1"></i> Reject
-                  </button>
-                </div>
-              ) : (
-                <button className="btn btn-outline-dark mt-2" onClick={() => downloadLeavePDF(leave)}>
-                  <i className="fas fa-download me-1"></i> Download PDF
-                </button>
-              )}
-            </div>
-          </div>
-        ))
-      )}
+      <h5 className="text-secondary">Leave Requests</h5>
+      {
+        view === 'pending' ? (
+          leaveRequests.length === 0 ? (
+            <p className="text-muted">No pending leave applications for HR.</p>
+          ) : (
+            leaveRequests.map((request) => (
+              <HrApprovalCard
+                key={request.id}
+                request={request}
+                action={handleLeaveApproval}
+              />
+            ))
+          )
+        ) : (
+          approvedLeaveRequests.length === 0 ? (
+            <p className="text-muted">No approved applications for HR.</p>
+          ) : (
+            approvedLeaveRequests.map((request) => (
+              <HrApprovedCard
+                key={request.id}
+                request={request}
+                downloadPdf={downloadLeavePDF}
+              />
+            ))
+          )
+        )
+      }
     </div>
   );
 };

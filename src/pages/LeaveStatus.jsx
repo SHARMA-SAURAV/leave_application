@@ -19,26 +19,28 @@ const LeaveStatus = () => {
   }, []);
 
   const renderProgress = (status) => {
-    const steps = ['FLA', 'SLA', 'HR'];
-    const currentIndex =
-      status === 'COMPLETED'
-        ? 3
-        : status === 'REJECTED'
-        ? -1
-        : steps.findIndex((step) => status === step) + 1;
-
-    return (
-      <div className="progress-tracker">
-        {steps.map((step, index) => (
-          <div key={step} className={`step ${index < currentIndex ? 'active' : ''}`}>
-            {step}
-          </div>
-        ))}
-        {status === 'COMPLETED' && <div className="step active">DONE</div>}
-        {status === 'REJECTED' && <div className="step rejected">REJECTED</div>}
-      </div>
-    );
+    switch (status) {
+      case 'FLA':
+        return <span className="badge bg-warning text-dark">Pending with FLA</span>;
+      case 'SLA':
+        return <span className="badge bg-warning text-dark">Pending with SLA</span>;
+      case 'HR':
+        return <span className="badge bg-warning text-dark">Pending with HR</span>;
+      case 'APPROVED':
+        return <span className="badge bg-success">Approved</span>;
+      case 'REJECTED':
+        return <span className="badge bg-danger">Rejected</span>;
+      default:
+        return <span className="badge bg-secondary">Unknown</span>;
+    }
   };
+
+  const getLeavesUsed = (leave) => {
+    const leavesUsed = [['CL', leave.clLeaves], ['PL', leave.plLeaves], ['RH', leave.rhLeaves], ['Other', leave.otherLeaves]];
+    return leavesUsed.map(([type, count]) => (
+      (count > 0) && (<span key={type} className="badge bg-success ms-1 me-1">{type}:{count}</span>)
+    ))
+  }
 
   return (
     <div className="container mt-4">
@@ -47,23 +49,17 @@ const LeaveStatus = () => {
         <thead>
           <tr>
             <th>Dates</th>
-            <th>Leave Type</th>
+            <th>Leaves Used</th>
             <th>Reason</th>
             <th>Status</th>
-            <th>Progress</th>
           </tr>
         </thead>
         <tbody>
           {leaves.map((leave) => (
             <tr key={leave.id}>
               <td>{leave.startDate} to {leave.endDate}</td>
-              <td>
-                {leave.plLeave ? 'PL ' : ''}
-                {leave.clLeave ? 'CL ' : ''}
-                {leave.rhLeave ? 'RH' : ''}
-              </td>
+              <td>{getLeavesUsed(leave)}</td>
               <td>{leave.reason}</td>
-              <td>{leave.status}</td>
               <td>{renderProgress(leave.status)}</td>
             </tr>
           ))}
