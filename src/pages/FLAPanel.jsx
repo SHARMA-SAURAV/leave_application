@@ -243,7 +243,11 @@ const FLAPanel = () => {
           <div key={slip.id} className="card shadow-sm mb-4">
             <div className="card-body">
               <h5 className="card-title text-dark">Entry Slip</h5>
-              <p><strong>Created By:</strong> {slip.createdBy?.email}</p>
+              <p><strong>Employee Name:</strong> {slip.createdBy?.name}</p>
+              <p><strong>Email:</strong> {slip.createdBy?.email}</p>
+              <p><strong>Department:</strong> {slip.createdBy?.department}</p>
+              <p><strong>Employee ID:</strong> {slip.createdBy?.employeeId}</p>
+
               <p><strong>Date:</strong> {slip.date}</p>
               <p><strong>Time:</strong> {slip.inTime} - {slip.outTime}</p>
               <p><strong>Reason:</strong> {slip.reason}</p>

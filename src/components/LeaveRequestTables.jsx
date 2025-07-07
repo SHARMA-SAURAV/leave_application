@@ -106,9 +106,13 @@ export function LeaveDetailsText({ request }) {
     <>
       <ListCardLine label="Employee Name" value={request.requestedBy.name} />
       <ListCardLine label="Employee Email" value={request.requestedBy.email} />
+      <ListCardLine label="Employee ID" value={request.requestedBy.employeeId} />
+      <ListCardLine label="Department" value={request.requestedBy.department} />
       <ListCardLine label="Start Date" value={new Date(request.startDate).toLocaleDateString()} />
       <ListCardLine label="End Date" value={new Date(request.endDate).toLocaleDateString()} />
       <ListCardLine label="Reason" value={request.reason} />
+
+
       {request.substitute !== null && <ListCardLine label="Substitute" value={request.substitute} />}
       <ListCardLine label="CL Leaves" value={request.clLeaves} />
       <ListCardLine label="PL Leaves" value={request.plLeaves} />

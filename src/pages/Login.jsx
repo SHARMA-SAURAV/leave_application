@@ -51,7 +51,7 @@
 
 import React, { useState } from 'react';
 import api from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -124,7 +124,8 @@ const Login = () => {
           <button type="submit" className="btn btn-primary w-100">Login</button>
 
           <div className="text-center mt-3">
-            <a href="#" className="text-decoration-none">Forgot password?</a>
+            {/* <a href="#" className="text-decoration-none">Forgot password?</a> */}
+            <Link to="/forgot-password" className="text-decoration-none">Forgot password?</Link>
           </div>
         </form>
       </div>
