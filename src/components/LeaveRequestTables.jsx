@@ -35,11 +35,24 @@ export function FlaApprovalCard({ request, action, approvers }) {
           </WideInput>
         </div>
         <ListCardButtonPair
-          approveLabel={"Approve"}
-          rejectLabel={"Reject"}
+          approveLabel={loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Approving...
+            </>
+          ) : "Approve"}
+          rejectLabel={loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Rejecting...
+            </>
+          ) : "Reject"}
           onApprove={() => callAction(formRef.current, action, request.id, "approve", slaSelected, substituteSelected)}
           onReject={() => action(request.id, "reject", slaSelected, substituteSelected)}
+          approveDisabled={loading}
+          rejectDisabled={loading}
         />
+
       </form>
     </ListCard>
   )
@@ -61,11 +74,24 @@ export function SlaApprovalCard({ request, action }) {
           </div>
         )}
         <ListCardButtonPair
-          approveLabel={"Approve"}
-          rejectLabel={"Reject"}
-          onApprove={() => callAction(formRef.current, action, request.id, "approve", substituteSelected)}
-          onReject={() => action(request.id, "reject", substituteSelected)}
+          approveLabel={loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Approving...
+            </>
+          ) : "Approve"}
+          rejectLabel={loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Rejecting...
+            </>
+          ) : "Reject"}
+          onApprove={() => callAction(formRef.current, action, request.id, "approve", slaSelected, substituteSelected)}
+          onReject={() => action(request.id, "reject", slaSelected, substituteSelected)}
+          approveDisabled={loading}
+          rejectDisabled={loading}
         />
+
       </form>
     </ListCard>
   )
@@ -78,11 +104,24 @@ export function HrApprovalCard({ request, action }) {
       <form ref={formRef} onSubmit={(e) => e.preventDefault()}>
         <LeaveDetailsText request={request} />
         <ListCardButtonPair
-          approveLabel={"Approve"}
-          rejectLabel={"Reject"}
-          onApprove={() => callAction(formRef.current, action, request.id, "approve")}
-          onReject={() => action(request.id, "reject")}
+          approveLabel={loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Approving...
+            </>
+          ) : "Approve"}
+          rejectLabel={loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Rejecting...
+            </>
+          ) : "Reject"}
+          onApprove={() => callAction(formRef.current, action, request.id, "approve", slaSelected, substituteSelected)}
+          onReject={() => action(request.id, "reject", slaSelected, substituteSelected)}
+          approveDisabled={loading}
+          rejectDisabled={loading}
         />
+
       </form>
     </ListCard>
   )

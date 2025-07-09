@@ -158,6 +158,9 @@ const FLAPanel = () => {
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [slaUsers, setSlaUsers] = useState([]);
   const [selectedSLA, setSelectedSLA] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [leaveActionLoading, setLeaveActionLoading] = useState({});
+
 
   const fetchData = async () => {
     try {
@@ -199,6 +202,7 @@ const FLAPanel = () => {
   };
 
   const handleEntrySlipAction = async (id, action) => {
+    setLoading(true);
     try {
       if (action === 'approve') {
         const slaEmail = selectedSLA[id];
@@ -220,17 +224,27 @@ const FLAPanel = () => {
     } catch (err) {
       console.error(`Failed to ${action} entry slip`, err);
     }
+    finally {
+      setLoading(false);
+    }
   };
 
   const handleLeaveApproval = async (id, action, slaId, substitute) => {
-    const result = await leaveApproveApi(id, "fla", action, {
-      slaSelected: slaId,
-      substituteSelected: substitute,
-    });
-    if (result) {
-      setLeaveRequests((prev) => prev.filter((request) => request.id !== id));
+    setLeaveActionLoading((prev) => ({ ...prev, [id]: true }));
+    try {
+      const result = await leaveApproveApi(id, "fla", action, {
+        slaSelected: slaId,
+        substituteSelected: substitute,
+      });
+      if (result) {
+        setLeaveRequests((prev) => prev.filter((request) => request.id !== id));
+      }
+    } catch (err) {
+      console.error(`Failed to ${action} leave request`, err);
+    } finally {
+      setLeaveActionLoading((prev) => ({ ...prev, [id]: false }));
     }
-  }
+  };
 
   return (
     <div className="container mt-4">
@@ -269,11 +283,36 @@ const FLAPanel = () => {
               </div>
 
               <div className="d-flex gap-2">
-                <button className="btn btn-success" onClick={() => handleEntrySlipAction(slip.id, 'approve')}>
-                  <i className="fas fa-check-circle me-1"></i> Approve
+                <button className="btn btn-success" onClick={() => handleEntrySlipAction(slip.id, 'approve')} disabled={loading}>
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-check-circle me-1"></i> Approve
+                    </>
+                  )}
+
+
+
+
                 </button>
-                <button className="btn btn-danger" onClick={() => handleEntrySlipAction(slip.id, 'reject')}>
-                  <i className="fas fa-times-circle me-1"></i> Reject
+                <button className="btn btn-danger" onClick={() => handleEntrySlipAction(slip.id, 'reject')} disabled={loading}>
+
+
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-times me-1"></i> Reject
+                    </>
+                  )}
+
                 </button>
               </div>
             </div>
@@ -291,6 +330,7 @@ const FLAPanel = () => {
             request={request}
             action={handleLeaveApproval}
             approvers={slaUsers}
+            loading={leaveActionLoading[request.id] || false}
           />
         ))
       )}

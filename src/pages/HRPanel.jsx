@@ -12,6 +12,8 @@ const HRPanel = () => {
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [approvedLeaveRequests, setApprovedLeaveRequests] = useState([]);
   const [view, setView] = useState('pending'); // 'pending' or 'approved'
+const [entrySlipLoading, setEntrySlipLoading] = useState({});
+const [leaveActionLoading, setLeaveActionLoading] = useState({});
 
 
 
@@ -41,12 +43,16 @@ const HRPanel = () => {
   }, [view]);
 
   const handleEntrySlipAction = async (id, action) => {
+   setEntrySlipLoading((prev) => ({ ...prev, [id]: true }));
     try {
       await api.put(`/entry-slip/${action}/${id}?role=HR`);
       alert(`Entry slip ${action}ed successfully`);
       fetchData();
     } catch (err) {
       console.error(`Failed to ${action} entry slip`, err);
+    }
+    finally {
+      setEntrySlipLoading((prev) => ({ ...prev, [id]: false }));
     }
   };
 
@@ -114,10 +120,12 @@ const HRPanel = () => {
 
 
   const handleLeaveApproval = async (id, action) => {
+    setLeaveActionLoading((prev) => ({ ...prev, [id]: true }));
     const result = await leaveApproveApi(id, "hr", action);
     if (result) {
       setLeaveRequests((prev) => prev.filter((request) => request.id !== id));
     }
+    setLeaveActionLoading((prev) => ({ ...prev, [id]: false }));
   }
 
   return (
@@ -157,10 +165,30 @@ const HRPanel = () => {
               {view === 'pending' ? (
                 <div className="d-flex gap-2 mt-3">
                   <button className="btn btn-success" onClick={() => handleEntrySlipAction(slip.id, 'approve')}>
-                    <i className="fas fa-check me-1"></i> Approve
+                    {entrySlipLoading[slip.id] ? (
+
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Approving...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-check-circle me-1"></i> Approve
+                    </>
+                  )}
                   </button>
                   <button className="btn btn-danger" onClick={() => handleEntrySlipAction(slip.id, 'reject')}>
-                    <i className="fas fa-times me-1"></i> Reject
+               {entrySlipLoading[slip.id] ? (
+
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Rejecting...
+                    </>
+                  ) : (
+                    <>
+                       <i className="fas fa-times me-1"></i> Reject
+                    </>
+                  )}
                   </button>
                 </div>
               ) : (
@@ -184,6 +212,7 @@ const HRPanel = () => {
                 key={request.id}
                 request={request}
                 action={handleLeaveApproval}
+                loading={leaveActionLoading[request.id] || false}
               />
             ))
           )

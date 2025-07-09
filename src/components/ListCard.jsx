@@ -17,15 +17,22 @@ export function ListCardLine({ label, value }) {
   )
 }
 
-export function ListCardButtonPair({ approveLabel, rejectLabel, onApprove, onReject }) {
+export function ListCardButtonPair({
+  approveLabel = "Approve",
+  rejectLabel = "Reject",
+  onApprove,
+  onReject,
+  approveDisabled = false,
+  rejectDisabled = false
+}) {
   return (
-    <div className="d-flex gap-2">
-      <button type="submit" className="btn btn-success" onClick={onApprove}>
-        <i className="fas fa-check-circle me-1"></i> {approveLabel}
+    <div className="d-flex gap-2 mt-3">
+      <button className="btn btn-success" onClick={onApprove} disabled={approveDisabled}>
+        {approveLabel}
       </button>
-      <button type="submit" className="btn btn-danger" onClick={onReject}>
-        <i className="fas fa-times-circle me-1"></i> {rejectLabel}
+      <button className="btn btn-danger" onClick={onReject} disabled={rejectDisabled}>
+        {rejectLabel}
       </button>
     </div>
-  )
+  );
 }

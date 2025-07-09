@@ -13,6 +13,7 @@ const ApplyLeave = () => {
   const [approvalType, setApprovalType] = useState(APPROVER_TYPES[0]);
   const [approverList, setApproverList] = useState([]);
   const [currentApprover, setCurrentApprover] = useState('');
+  const [loading, setLoading] = useState(false);
   const [selectedLeaves, setSelectedLeaves] = useState({
     PL: 0,
     CL: 0,
@@ -42,6 +43,7 @@ const ApplyLeave = () => {
 
   const totalLeaves = selectedLeaves.PL + selectedLeaves.CL + selectedLeaves.RH + selectedLeaves.Other;
   const handleSubmit = async (e) => {
+    setLoading(true);
     e.preventDefault();
     if (totalLeaves <= 0) {
       alert('Please select at least one type of leave.');
@@ -77,6 +79,9 @@ const ApplyLeave = () => {
     } catch (err) {
       alert('Failed to apply leave.');
       console.error(err);
+    }
+    finally {
+      setLoading(false);
     }
   };
 
@@ -210,9 +215,22 @@ const ApplyLeave = () => {
         </div>
 
         <div className="d-grid">
-          <button type="submit" className="btn btn-primary">
-            <i className="fas fa-paper-plane me-2"></i>Submit Leave Request
-          </button>
+
+
+           <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? (
+                <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              submiting...
+              </>
+              )
+              :(
+                <>
+               <i className="fas fa-paper-plane me-2"></i>Submit Leave Request
+                </>
+              )}
+             
+            </button>
         </div>
       </form>
     </ApplicationFormBox>

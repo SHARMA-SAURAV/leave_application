@@ -102,9 +102,12 @@ import api from '../services/api';
 import { SlaApprovalCard } from '../components/LeaveRequestTables';
 import { leaveApproveApi } from '../services/leave';
 
+
 const SLAPanel = () => {
   const [entrySlips, setEntrySlips] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [leaveActionLoading, setLeaveActionLoading] = useState({});
 
   const fetchData = async () => {
     try {
@@ -130,6 +133,7 @@ const SLAPanel = () => {
   }, []);
 
   const handleEntrySlipAction = async (id, action) => {
+    setLoading(true);
     try {
       await api.put(`/entry-slip/${action}/${id}?role=SLA`);
       alert(`Entry slip ${action}ed successfully`);
@@ -137,13 +141,18 @@ const SLAPanel = () => {
     } catch (err) {
       console.error(`Failed to ${action} entry slip`, err);
     }
+    finally {
+      setLoading(false);
+    } 
   };
 
   const handleLeaveApproval = async (id, action, substitute = null) => {
+     setLeaveActionLoading((prev) => ({ ...prev, [id]: true }));
     const result = await leaveApproveApi(id, "sla", action, { substituteSelected: substitute });
     if (result) {
       setLeaveRequests((prev) => prev.filter((request) => request.id !== id));
     }
+     setLeaveActionLoading((prev) => ({ ...prev, [id]: false }));
   }
 
   return (
@@ -167,10 +176,31 @@ const SLAPanel = () => {
 
               <div className="d-flex gap-2 mt-3">
                 <button className="btn btn-success" onClick={() => handleEntrySlipAction(slip.id, 'approve')}>
-                  <i className="fas fa-check me-1"></i> Approve
+
+                   {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Approving...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-check-circle me-1"></i> Approve
+                    </>
+                  )}
+
                 </button>
                 <button className="btn btn-danger" onClick={() => handleEntrySlipAction(slip.id, 'reject')}>
-                  <i className="fas fa-times me-1"></i> Reject
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Rejecting...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-times me-1"></i> Reject
+                    </>
+                  )}
+
                 </button>
               </div>
             </div>
@@ -187,6 +217,7 @@ const SLAPanel = () => {
             key={request.id}
             request={request}
             action={handleLeaveApproval}
+            loading={leaveActionLoading[request.id] || false}
           />
         ))
       )}
