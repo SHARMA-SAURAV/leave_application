@@ -10,11 +10,11 @@
 //   return (
 //     <div className='app-container'>
 //     <Navbar />
-   
+
 //     <Routes>
 //       <Route path="/" element={<Login />} />
 //     </Routes>
-    
+
 //     </div>
 //   )
 // }
@@ -44,19 +44,18 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/apply-leave" element={<ApplyLeave />} />
-      <Route path="/sla-dashboard" element={<SLAPanel />} />
-      <Route path="/hr-dashboard" element={<HRPanel />} />
-      <Route path="/fla-dashboard" element={<FLAPanel />} />
-      <Route path="/entry-slip-status" element={<EntrySlipStatus />} />
-      <Route path="/leave-status" element={<LeaveStatus />} />
-
-      <Route path="/entry-slip" element={<ApplyEntrySlip />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/apply-leave" element={<ApplyLeave />} />
+        <Route path="/sla-dashboard" element={<SLAPanel />} />
+        <Route path="/hr-dashboard" element={<HRPanel />} />
+        <Route path="/fla-dashboard" element={<FLAPanel />} />
+        <Route path="/entry-slip-status" element={<EntrySlipStatus />} />
+        <Route path="/leave-status" element={<LeaveStatus />} />
+        <Route path="/entry-slip" element={<ApplyEntrySlip />} />
       </Routes>
     </Router>
   );

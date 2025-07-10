@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { HrApprovalCard, HrApprovedCard } from '../components/LeaveRequestTables';
+import { HrApprovalRow, HrApprovedRow } from '../components/LeaveRequestTables';
 import { leaveApproveApi } from '../services/leave';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -12,8 +12,8 @@ const HRPanel = () => {
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [approvedLeaveRequests, setApprovedLeaveRequests] = useState([]);
   const [view, setView] = useState('pending'); // 'pending' or 'approved'
-const [entrySlipLoading, setEntrySlipLoading] = useState({});
-const [leaveActionLoading, setLeaveActionLoading] = useState({});
+  const [entrySlipLoading, setEntrySlipLoading] = useState({});
+  const [_, setLeaveActionLoading] = useState({});
 
 
 
@@ -43,7 +43,7 @@ const [leaveActionLoading, setLeaveActionLoading] = useState({});
   }, [view]);
 
   const handleEntrySlipAction = async (id, action) => {
-   setEntrySlipLoading((prev) => ({ ...prev, [id]: true }));
+    setEntrySlipLoading((prev) => ({ ...prev, [id]: true }));
     try {
       await api.put(`/entry-slip/${action}/${id}?role=HR`);
       alert(`Entry slip ${action}ed successfully`);
@@ -91,7 +91,7 @@ const [leaveActionLoading, setLeaveActionLoading] = useState({});
   };
 
 
-  const downloadLeavePDF = (leave) => {
+  const downloadLeavePDF = async (leave) => {
     const doc = new jsPDF();
     doc.setFontSize(14);
     doc.text('Leave Application Details', 14, 20);
@@ -154,7 +154,7 @@ const [leaveActionLoading, setLeaveActionLoading] = useState({});
         entrySlips.map((slip) => (
           <div key={slip.id} className="card shadow-sm mb-4">
             <div className="card-body">
-               <p><strong>Employee Name:</strong> {slip.createdBy?.name}</p>
+              <p><strong>Employee Name:</strong> {slip.createdBy?.name}</p>
               <p><strong>Email:</strong> {slip.createdBy?.email}</p>
               <p><strong>Department:</strong> {slip.createdBy?.department}</p>
               <p><strong>Employee ID:</strong> {slip.createdBy?.employeeId}</p>
@@ -167,28 +167,28 @@ const [leaveActionLoading, setLeaveActionLoading] = useState({});
                   <button className="btn btn-success" onClick={() => handleEntrySlipAction(slip.id, 'approve')}>
                     {entrySlipLoading[slip.id] ? (
 
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                      Approving...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-check-circle me-1"></i> Approve
-                    </>
-                  )}
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Approving...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-check-circle me-1"></i> Approve
+                      </>
+                    )}
                   </button>
                   <button className="btn btn-danger" onClick={() => handleEntrySlipAction(slip.id, 'reject')}>
-               {entrySlipLoading[slip.id] ? (
+                    {entrySlipLoading[slip.id] ? (
 
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                      Rejecting...
-                    </>
-                  ) : (
-                    <>
-                       <i className="fas fa-times me-1"></i> Reject
-                    </>
-                  )}
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Rejecting...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-times me-1"></i> Reject
+                      </>
+                    )}
                   </button>
                 </div>
               ) : (
@@ -207,26 +207,63 @@ const [leaveActionLoading, setLeaveActionLoading] = useState({});
           leaveRequests.length === 0 ? (
             <p className="text-muted">No pending leave applications for HR.</p>
           ) : (
-            leaveRequests.map((request) => (
-              <HrApprovalCard
-                key={request.id}
-                request={request}
-                action={handleLeaveApproval}
-                loading={leaveActionLoading[request.id] || false}
-              />
-            ))
+            <div className="table-responsive">
+              <table className="table table-striped table-hover">
+                <thead className="table-dark">
+                  <tr>
+                    <th scope="col">Employee</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Dept</th>
+                    <th scope="col">Leave Period</th>
+                    <th scope="col">Reason</th>
+                    <th scope="col">Leave Days</th>
+                    <th scope="col">Substitute</th>
+                    <th scope="col" className="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaveRequests.map((request) => (
+                    <HrApprovalRow
+                      key={request.id}
+                      request={request}
+                      action={handleLeaveApproval}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )
         ) : (
           approvedLeaveRequests.length === 0 ? (
             <p className="text-muted">No approved applications for HR.</p>
           ) : (
-            approvedLeaveRequests.map((request) => (
-              <HrApprovedCard
-                key={request.id}
-                request={request}
-                downloadPdf={downloadLeavePDF}
-              />
-            ))
+            <div className="table-responsive">
+              <table className="table table-striped table-hover">
+                <thead className="table-dark">
+                  <tr>
+                    <th scope="col">Employee</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Dept</th>
+                    <th scope="col">Leave Period</th>
+                    <th scope="col">Reason</th>
+                    <th scope="col">Leave Days</th>
+                    <th scope="col">Substitute</th>
+                    <th scope="col" className="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaveRequests.map((request) => (
+                    <HrApprovedRow
+                      key={request.id}
+                      request={request}
+                      downloadPdf={downloadLeavePDF}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )
         )
       }
@@ -235,124 +272,3 @@ const [leaveActionLoading, setLeaveActionLoading] = useState({});
 };
 
 export default HRPanel;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import React, { useEffect, useState } from 'react';
-// import api from '../services/api';
-
-// const HRPanel = () => {
-//   const [entrySlips, setEntrySlips] = useState([]);
-//   const [leaveApps, setLeaveApps] = useState([]);
-
-//   const fetchData = async () => {
-//     try {
-//       const entryRes = await api.get('/entry-slip/pending/hr');
-//       setEntrySlips(entryRes.data);
-
-//       const leaveRes = await api.get('/leave/pending/hr');
-//       setLeaveApps(leaveRes.data);
-//     } catch (err) {
-//       console.error('Error fetching HR data:', err);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchData();
-//   }, []);
-
-//   const handleEntrySlipAction = async (id, action) => {
-//     try {
-//       await api.put(`/entry-slip/${action}/${id}?role=HR`);
-//       alert(`Entry slip ${action}ed successfully`);
-//       fetchData();
-//     } catch (err) {
-//       console.error(`Failed to ${action} entry slip`, err);
-//     }
-//   };
-
-//   const handleLeaveAction = async (id, action) => {
-//     try {
-//       await api.put(`/leave/${action}/${id}?role=HR`);
-//       alert(`Leave ${action}ed successfully`);
-//       fetchData();
-//     } catch (err) {
-//       console.error(`Failed to ${action} leave`, err);
-//     }
-//   };
-
-//   return (
-//     <div className="container mt-4">
-//       <h3 className="text-primary mb-4">HR Panel – Entry Slips</h3>
-
-//       {entrySlips.length === 0 ? (
-//         <p className="text-muted">No pending entry slips.</p>
-//       ) : (
-//         entrySlips.map((slip) => (
-//           <div key={slip.id} className="card shadow-sm mb-4">
-//             <div className="card-body">
-//               <h5 className="card-title text-dark">Entry Slip</h5>
-//               <p><strong>Email:</strong> {slip.email}</p>
-//               <p><strong>Date:</strong> {slip.date}</p>
-//               <p><strong>Time:</strong> {slip.inTime} - {slip.outTime}</p>
-//               <p><strong>Reason:</strong> {slip.reason}</p>
-
-//               <div className="d-flex gap-2 mt-3">
-//                 <button className="btn btn-success" onClick={() => handleEntrySlipAction(slip.id, 'approve')}>
-//                   <i className="fas fa-check me-1"></i> Approve
-//                 </button>
-//                 <button className="btn btn-danger" onClick={() => handleEntrySlipAction(slip.id, 'reject')}>
-//                   <i className="fas fa-times me-1"></i> Reject
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-//         ))
-//       )}
-
-//       <h3 className="text-primary mt-5 mb-4">HR Panel – Leave Applications</h3>
-
-//       {leaveApps.length === 0 ? (
-//         <p className="text-muted">No pending leave applications.</p>
-//       ) : (
-//         leaveApps.map((leave) => (
-//           <div key={leave.id} className="card shadow-sm mb-4">
-//             <div className="card-body">
-//               <h5 className="card-title text-dark">Leave Application</h5>
-//               <p><strong>Email:</strong> {leave.email}</p>
-//               <p><strong>Dates:</strong> {leave.fromDate} to {leave.toDate}</p>
-//               <p><strong>Type:</strong> {leave.leaveType} ({leave.dayType})</p>
-//               <p><strong>Reason:</strong> {leave.reason}</p>
-
-//               <div className="d-flex gap-2 mt-3">
-//                 <button className="btn btn-success" onClick={() => handleLeaveAction(leave.id, 'approve')}>
-//                   <i className="fas fa-check me-1"></i> Approve
-//                 </button>
-//                 <button className="btn btn-danger" onClick={() => handleLeaveAction(leave.id, 'reject')}>
-//                   <i className="fas fa-times me-1"></i> Reject
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-//         ))
-//       )}
-//     </div>
-//   );
-// };
-
-// export default HRPanel;

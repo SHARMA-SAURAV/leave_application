@@ -1,105 +1,6 @@
-// import React, { useEffect, useState } from 'react';
-// import api from '../services/api';
-
-// const SLAPanel = () => {
-//   const [entrySlips, setEntrySlips] = useState([]);
-//   const [leaveApps, setLeaveApps] = useState([]);
-
-//   const fetchData = async () => {
-//     try {
-//       const entryRes = await api.get('/entry-slip/pending/sla');
-//       setEntrySlips(entryRes.data);
-
-//       const leaveRes = await api.get('/leave/pending/sla');
-//       setLeaveApps(leaveRes.data);
-//     } catch (err) {
-//       console.error('Error fetching SLA data:', err);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchData();
-//   }, []);
-
-//   const handleEntrySlipAction = async (id, action) => {
-//     try {
-//       await api.put(`/entry-slip/${action}/${id}?role=SLA`);
-//       alert(`Entry slip ${action}ed successfully`);
-//       fetchData(); // Refresh
-//     } catch (err) {
-//       console.error(`Failed to ${action} entry slip`, err);
-//     }
-//   };
-
-//   const handleLeaveAction = async (id, action) => {
-//     try {
-//       await api.put(`/leave/${action}/${id}?role=SLA`);
-//       alert(`Leave ${action}ed successfully`);
-//       fetchData(); // Refresh
-//     } catch (err) {
-//       console.error(`Failed to ${action} leave`, err);
-//     }
-//   };
-
-//   return (
-//     <div>
-//       <h2>SLA Panel – Entry Slips</h2>
-//       {entrySlips.length === 0 ? (
-//         <p>No pending entry slips.</p>
-//       ) : (
-//         entrySlips.map((slip) => (
-//           <div key={slip.id} style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '10px' }}>
-//             <p><strong>Email:</strong> {slip.email}</p>
-//             <p><strong>Date:</strong> {slip.date}</p>
-//             <p><strong>Time:</strong> {slip.inTime} - {slip.outTime}</p>
-//             <p><strong>Reason:</strong> {slip.reason}</p>
-//             <button onClick={() => handleEntrySlipAction(slip.id, 'approve')}>Approve</button>
-//             <button onClick={() => handleEntrySlipAction(slip.id, 'reject')}>Reject</button>
-//           </div>
-//         ))
-//       )}
-
-//       <h2>SLA Panel – Leave Applications</h2>
-//       {leaveApps.length === 0 ? (
-//         <p>No pending leave applications.</p>
-//       ) : (
-//         leaveApps.map((leave) => (
-//           <div key={leave.id} style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '10px' }}>
-//             <p><strong>Email:</strong> {leave.email}</p>
-//             <p><strong>Dates:</strong> {leave.fromDate} to {leave.toDate}</p>
-//             <p><strong>Leave Type:</strong> {leave.leaveType} ({leave.dayType})</p>
-//             <p><strong>Reason:</strong> {leave.reason}</p>
-//             <button onClick={() => handleLeaveAction(leave.id, 'approve')}>Approve</button>
-//             <button onClick={() => handleLeaveAction(leave.id, 'reject')}>Reject</button>
-//           </div>
-//         ))
-//       )}
-//     </div>
-//   );
-// };
-
-// export default SLAPanel;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { SlaApprovalCard } from '../components/LeaveRequestTables';
+import { SlaApprovalRow } from '../components/LeaveRequestTables';
 import { leaveApproveApi } from '../services/leave';
 
 
@@ -107,7 +8,7 @@ const SLAPanel = () => {
   const [entrySlips, setEntrySlips] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [leaveActionLoading, setLeaveActionLoading] = useState({});
+  const [_, setLeaveActionLoading] = useState({});
 
   const fetchData = async () => {
     try {
@@ -143,16 +44,16 @@ const SLAPanel = () => {
     }
     finally {
       setLoading(false);
-    } 
+    }
   };
 
   const handleLeaveApproval = async (id, action, substitute = null) => {
-     setLeaveActionLoading((prev) => ({ ...prev, [id]: true }));
+    setLeaveActionLoading((prev) => ({ ...prev, [id]: true }));
     const result = await leaveApproveApi(id, "sla", action, { substituteSelected: substitute });
     if (result) {
       setLeaveRequests((prev) => prev.filter((request) => request.id !== id));
     }
-     setLeaveActionLoading((prev) => ({ ...prev, [id]: false }));
+    setLeaveActionLoading((prev) => ({ ...prev, [id]: false }));
   }
 
   return (
@@ -166,7 +67,7 @@ const SLAPanel = () => {
           <div key={slip.id} className="card shadow-sm mb-4">
             <div className="card-body">
               <h5 className="card-title text-dark">Entry Slip</h5>
-             <p><strong>Employee Name:</strong> {slip.createdBy?.name}</p>
+              <p><strong>Employee Name:</strong> {slip.createdBy?.name}</p>
               <p><strong>Email:</strong> {slip.createdBy?.email}</p>
               <p><strong>Department:</strong> {slip.createdBy?.department}</p>
               <p><strong>Employee ID:</strong> {slip.createdBy?.employeeId}</p>
@@ -177,7 +78,7 @@ const SLAPanel = () => {
               <div className="d-flex gap-2 mt-3">
                 <button className="btn btn-success" onClick={() => handleEntrySlipAction(slip.id, 'approve')}>
 
-                   {loading ? (
+                  {loading ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                       Approving...
@@ -212,14 +113,32 @@ const SLAPanel = () => {
       {leaveRequests.length === 0 ? (
         <p className="text-muted">No pending leave applications for SLA.</p>
       ) : (
-        leaveRequests.map((request) => (
-          <SlaApprovalCard
-            key={request.id}
-            request={request}
-            action={handleLeaveApproval}
-            loading={leaveActionLoading[request.id] || false}
-          />
-        ))
+        <div className="table-responsive">
+          <table className="table table-striped table-hover">
+            <thead className="table-dark">
+              <tr>
+                <th scope="col">Employee</th>
+                <th scope="col">Email</th>
+                <th scope="col">ID</th>
+                <th scope="col">Dept</th>
+                <th scope="col">Leave Period</th>
+                <th scope="col">Reason</th>
+                <th scope="col">Leave Days</th>
+                <th scope="col">Substitute</th>
+                <th scope="col" className="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leaveRequests.map((request) => (
+                <SlaApprovalRow
+                  key={request.id}
+                  request={request}
+                  action={handleLeaveApproval}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
     </div>
