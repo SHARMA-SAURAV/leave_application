@@ -1,162 +1,226 @@
 
-import { UserSelect, WideInput } from "./FormControls.jsx"
-import { ListCard, ListCardLine, ListCardButtonPair } from "./ListCard"
-import { useState, useRef } from "react";
+import { UserSelect } from "./FormControls.jsx"
+import { useState } from "react";
 
-// To validate the form and call the action
-function callAction(form, action, ...args) {
-  if (!form.checkValidity()) {
-    form.reportValidity();
-    return;
-  }
-  action(...args);
+function TableCell({ children, className = "" }) {
+  const finalClassName = `align-middle ${className}`;
+  return (
+    <td className={finalClassName}>
+      {children}
+    </td>
+  );
 }
 
-export function FlaApprovalCard({ request, action, approvers }) {
-  const formRef = useRef(null);
+export function LeaveApprovalRow({ request, children }) {
+
+  return (
+    <tr>
+      <TableCell>
+        <div>
+          <strong>{request.requestedBy.name}</strong>
+          <br />
+          <small className="text-muted">{request.requestedBy.department}</small>
+        </div>
+      </TableCell>
+
+      <TableCell>
+        <small>{request.requestedBy.email}</small>
+      </TableCell>
+
+      <TableCell>
+        <small>{request.requestedBy.employeeId}</small>
+      </TableCell>
+
+      <TableCell>
+        <small>{request.requestedBy.department}</small>
+      </TableCell>
+
+      <TableCell>
+        <small>
+          <strong>From:</strong> {new Date(request.startDate).toLocaleDateString()}
+          <br />
+          <strong>To:</strong> {new Date(request.endDate).toLocaleDateString()}
+        </small>
+      </TableCell>
+
+      <TableCell>
+        <small title={request.reason}>
+          {request.reason.length > 30 ? `${request.reason.substring(0, 30)}...` : request.reason}
+        </small>
+      </TableCell>
+
+      <TableCell>
+        <small>
+          <div>CL: {request.clLeaves}</div>
+          <div>PL: {request.plLeaves}</div>
+          <div>RH: {request.rhLeaves}</div>
+          <div>Other: {request.otherLeaves}</div>
+        </small>
+      </TableCell>
+
+      {children}
+    </tr>
+  )
+}
+
+function SubstituteInput({ onChange }) {
+  return (
+    <div className="mb-2">
+      <input
+        type="text"
+        onChange={(e) => onChange(e.target.value)}
+        className="form-control form-control-sm"
+        placeholder="Provide substitute"
+        required
+      />
+    </div>
+  )
+}
+
+function ActionButtons({ onApprove, onReject, approveDisabled = false, rejectDisabled = false, loading = false }) {
+  if (loading) {
+    return (
+      <div className="text-center">
+        <strong>Please wait...</strong>
+      </div>
+    )
+  }
+  return (
+    <div className="d-flex gap-2">
+      <button className="btn btn-success" onClick={onApprove} disabled={approveDisabled}>
+        Approve
+      </button>
+      <button className="btn btn-danger" onClick={onReject} disabled={rejectDisabled}>
+        Reject
+      </button>
+    </div>
+  );
+}
+
+export function FlaApprovalRow({ request, action, approvers }) {
   const [slaSelected, setSlaSelected] = useState("");
   const [substituteSelected, setSubstituteSelected] = useState("");
-  return (
-    <ListCard cardId={request.id} title={`Leave Request - ${request.requestedBy.name}`}>
-      <form ref={formRef} onSubmit={(e) => e.preventDefault()}>
-        <LeaveDetailsText request={request} />
-        <div className="row mt-2">
-          <UserSelect
-            users={approvers}
-            label="Select SLA Approver"
-            inputName={`approver-${request.id}`}
-            value={slaSelected}
-            onChange={(newId) => setSlaSelected(newId)}
-          />
-        </div>
-        <div className="row">
-          <WideInput label={"Select Substitute"} forName={`substitute-${request.id}`} divClasses="col-md-6">
-            <input type="text" onChange={(e) => setSubstituteSelected(e.target.value)} className="form-control" id="exampleInput" placeholder="Name" required />
-          </WideInput>
-        </div>
-        <ListCardButtonPair
-          approveLabel={loading ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Approving...
-            </>
-          ) : "Approve"}
-          rejectLabel={loading ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Rejecting...
-            </>
-          ) : "Reject"}
-          onApprove={() => callAction(formRef.current, action, request.id, "approve", slaSelected, substituteSelected)}
-          onReject={() => action(request.id, "reject", slaSelected, substituteSelected)}
-          approveDisabled={loading}
-          rejectDisabled={loading}
-        />
+  const [loading, setLoading] = useState(false);
 
-      </form>
-    </ListCard>
-  )
+  return (
+    <LeaveApprovalRow request={request}>
+      <TableCell>
+        <UserSelect
+          users={approvers}
+          label="SLA Approver"
+          inputName={`sla-approver-${request.id}`}
+          value={slaSelected}
+          onChange={setSlaSelected}
+        />
+      </TableCell>
+      <TableCell>
+        <SubstituteInput onChange={setSubstituteSelected} />
+      </TableCell>
+      <TableCell>
+        <ActionButtons
+          onApprove={() => {
+            setLoading(true);
+            action(request.id, "approve", slaSelected, substituteSelected)
+              .finally(() => setLoading(false));
+          }}
+          onReject={() => {
+            setLoading(true);
+            action(request.id, "reject")
+              .finally(() => setLoading(false));
+          }}
+          approveDisabled={!slaSelected || !substituteSelected}
+          loading={loading}
+        />
+      </TableCell>
+    </LeaveApprovalRow>
+  );
 }
 
-export function SlaApprovalCard({ request, action }) {
-  const formRef = useRef(null);
-  const [substituteSelected, setSubstituteSelected] = useState(null);
+export function SlaApprovalRow({ request, action }) {
+  const [substituteSelected, setSubstituteSelected] = useState("");
+  const [loading, setLoading] = useState(false);
 
   return (
-    <ListCard cardId={request.id} title={`Leave Request - ${request.requestedBy.name}`}>
-      <form ref={formRef} onSubmit={(e) => e.preventDefault()}>
-        <LeaveDetailsText request={request} />
-        {request.substitute === null && (
-          <div className="row">
-            <WideInput label={"Select Substitute"} forName={`substitute-${request.id}`} divClasses="col-md-6">
-              <input type="text" onChange={(e) => setSubstituteSelected(e.target.value)} className="form-control" id="exampleInput" placeholder="Name" required />
-            </WideInput>
-          </div>
+    <LeaveApprovalRow request={request}>
+      <TableCell>
+        {(request.substitute == null) ? (
+          <SubstituteInput onChange={setSubstituteSelected} />
+        ) : (
+          request.substitute
         )}
-        <ListCardButtonPair
-          approveLabel={loading ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Approving...
-            </>
-          ) : "Approve"}
-          rejectLabel={loading ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Rejecting...
-            </>
-          ) : "Reject"}
-          onApprove={() => callAction(formRef.current, action, request.id, "approve", slaSelected, substituteSelected)}
-          onReject={() => action(request.id, "reject", slaSelected, substituteSelected)}
-          approveDisabled={loading}
-          rejectDisabled={loading}
+
+      </TableCell>
+      <TableCell>
+        <ActionButtons
+          onApprove={() => {
+            setLoading(true);
+            action(request.id, "approve", substituteSelected)
+              .finally(() => setLoading(false));
+          }}
+          onReject={() => {
+            setLoading(true);
+            action(request.id, "reject")
+              .finally(() => setLoading(false));
+          }}
+          approveDisabled={request.substitute == null && !substituteSelected}
+          loading={loading}
         />
-
-      </form>
-    </ListCard>
-  )
+      </TableCell>
+    </LeaveApprovalRow>
+  );
 }
 
-export function HrApprovalCard({ request, action }) {
-  const formRef = useRef(null);
+export function HrApprovalRow({ request, action }) {
+  const [loading, setLoading] = useState(false);
+
   return (
-    <ListCard cardId={request.id} title={`Leave Request - ${request.requestedBy.name}`}>
-      <form ref={formRef} onSubmit={(e) => e.preventDefault()}>
-        <LeaveDetailsText request={request} />
-        <ListCardButtonPair
-          approveLabel={loading ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Approving...
-            </>
-          ) : "Approve"}
-          rejectLabel={loading ? (
-            <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Rejecting...
-            </>
-          ) : "Reject"}
-          onApprove={() => callAction(formRef.current, action, request.id, "approve", slaSelected, substituteSelected)}
-          onReject={() => action(request.id, "reject", slaSelected, substituteSelected)}
-          approveDisabled={loading}
-          rejectDisabled={loading}
+    <LeaveApprovalRow request={request}>
+      <TableCell>
+        {request.substitute}
+      </TableCell>
+      <TableCell>
+        <ActionButtons
+          onApprove={() => {
+            setLoading(true);
+            action(request.id, "approve")
+              .finally(() => setLoading(false));
+          }}
+          onReject={() => {
+            setLoading(true);
+            action(request.id, "reject")
+              .finally(() => setLoading(false));
+          }}
+          loading={loading}
         />
-
-      </form>
-    </ListCard>
-  )
+      </TableCell>
+    </LeaveApprovalRow>
+  );
 }
 
-export function HrApprovedCard({ request, downloadPdf }) {
+export function HrApprovedRow({ request, downloadPdf }) {
+  const [loading, setLoading] = useState(false);
+
   return (
-    <ListCard cardId={request.id} title={`Leave Request - ${request.requestedBy.name}`}>
-      <form onSubmit={(e) => e.preventDefault()}>
-        <LeaveDetailsText request={request} />
-        <button className="btn btn-outline-dark mt-2" onClick={() => downloadPdf(request)}>
-          <i className="fas fa-download me-1"></i> Download PDF
-        </button>
-      </form>
-    </ListCard>
-  )
-}
-
-export function LeaveDetailsText({ request }) {
-  return (
-    <>
-      <ListCardLine label="Employee Name" value={request.requestedBy.name} />
-      <ListCardLine label="Employee Email" value={request.requestedBy.email} />
-      <ListCardLine label="Employee ID" value={request.requestedBy.employeeId} />
-      <ListCardLine label="Department" value={request.requestedBy.department} />
-      <ListCardLine label="Start Date" value={new Date(request.startDate).toLocaleDateString()} />
-      <ListCardLine label="End Date" value={new Date(request.endDate).toLocaleDateString()} />
-      <ListCardLine label="Reason" value={request.reason} />
-
-
-      {request.substitute !== null && <ListCardLine label="Substitute" value={request.substitute} />}
-      <ListCardLine label="CL Leaves" value={request.clLeaves} />
-      <ListCardLine label="PL Leaves" value={request.plLeaves} />
-      <ListCardLine label="RH Leaves" value={request.rhLeaves} />
-      <ListCardLine label="Other Leaves" value={request.otherLeaves} />
-    </>
+    <LeaveApprovalRow request={request}>
+      <TableCell>
+        <div className="text-center">{request.substitute}</div>
+      </TableCell>
+      <TableCell>
+        {loading ? (
+          <div className="text-center">
+            <strong>Please wait...</strong>
+          </div>
+        ) : (
+          <button className="btn btn-outline-dark mt-2"
+            onClick={() => {
+              setLoading(true);
+              downloadPdf(request)
+                .finally(() => setLoading(false));
+            }}>
+            <i className="fas fa-download me-1"></i> Download PDF
+          </button>
+        )}
+      </TableCell>
+    </LeaveApprovalRow>
   );
 }

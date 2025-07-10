@@ -11,7 +11,7 @@ export function WideInput({ label, forName, divClasses = '', children }) {
 
 export function UserSelect({ users, label = "", inputName, value, onChange }) {
     return (
-        <WideInput label={""} forName={inputName} divClasses="col-md-6">
+        <WideInput label={""} forName={inputName}>
             <select
                 name={inputName}
                 className="form-select"
