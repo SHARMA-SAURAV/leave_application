@@ -1,102 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import api from '../services/api';
-// import Navbar from '../components/Navbar';
-// import RoleSwitcher from '../components/RoleSwitcher';
-
-// const Dashboard = () => {
-//   const navigate = useNavigate();
-//   const [activeRole, setActiveRole] = useState(localStorage.getItem('activeRole') || '');
-//   const [entrySlips, setEntrySlips] = useState([]);
-//   const [leaveApps, setLeaveApps] = useState([]);
-
-//   useEffect(() => {
-//     setActiveRole(localStorage.getItem('activeRole') || '');
-
-//     if (localStorage.getItem('activeRole') === 'USER') {
-//       fetchUserData();
-//     }
-//   }, []);
-
-//   const fetchUserData = async () => {
-//     try {
-//       const [entryRes, leaveRes] = await Promise.all([
-//         api.get('/entry-slip/user'),
-//         api.get('/leave/user'),
-//       ]);
-//       setEntrySlips(entryRes.data);
-//       setLeaveApps(leaveRes.data);
-//     } catch (err) {
-//       console.error('Failed to fetch user data:', err);
-//     }
-//   };
-
-//   return (
-//     <div>
-//       {/* <Navbar /> */}
-//       <div className="container mt-4">
-//         <h2>Dashboard ({activeRole})</h2>
-//         <RoleSwitcher onChange={(r) => setActiveRole(r)} />
-//         <hr />
-
-//         {activeRole === 'USER' && (
-//           <>
-//             <div className="mb-4">
-//               <button className="btn btn-outline-primary me-2" onClick={() => navigate('/apply-leave')}>
-//                 Apply for Leave
-//               </button>
-//               <button className="btn btn-outline-secondary" onClick={() => navigate('/entry-slip')}>
-//                 Apply for Entry Slip
-//               </button>
-//               <button className="btn btn-outline-success me-2" onClick={() => navigate('/leave-status')}>
-//                 Track Leave
-//               </button>
-//               <button className="btn btn-outline-info" onClick={() => navigate('/entry-slip-status')}>
-//                 Track Entry Slip
-//               </button>
-//             </div>
-
-            
-//           </>
-//         )}
-
-//         {activeRole === 'FLA' && (
-//           <button className="btn btn-primary" onClick={() => navigate('/fla-dashboard')}>
-//             View Pending Approvals (FLA)
-//           </button>
-//         )}
-//         {activeRole === 'SLA' && (
-//           <button className="btn btn-primary" onClick={() => navigate('/sla-dashboard')}>
-//             View Pending Approvals (SLA)
-//           </button>
-//         )}
-//         {activeRole === 'HR' && (
-//           <button className="btn btn-primary" onClick={() => navigate('/hr-dashboard')}>
-//             View HR Approvals
-//           </button>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Dashboard;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -105,8 +6,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [activeRole, setActiveRole] = useState(localStorage.getItem('activeRole') || '');
   const [userRoles, setUserRoles] = useState([]);
-  const [entrySlips, setEntrySlips] = useState([]);
-  const [leaveApps, setLeaveApps] = useState([]);
+  const [_, setEntrySlips] = useState([]);
+  const [__, setLeaveApps] = useState([]);
 
   useEffect(() => {
     const storedRole = localStorage.getItem('activeRole') || '';
@@ -148,9 +49,8 @@ const Dashboard = () => {
           <div
             key={role}
             onClick={() => handleRoleChange(role)}
-            className={`card px-4 py-2 text-center shadow-sm ${
-              activeRole === role ? 'bg-primary text-white' : 'bg-light'
-            }`}
+            className={`card px-4 py-2 text-center shadow-sm ${activeRole === role ? 'bg-primary text-white' : 'bg-light'
+              }`}
             style={{ cursor: 'pointer', minWidth: '120px', borderRadius: '12px' }}
           >
             <div className="card-body p-2">
@@ -172,31 +72,53 @@ const Dashboard = () => {
             <button className="btn btn-outline-secondary" onClick={() => navigate('/entry-slip')}>
               Apply for Entry Slip
             </button>
+            <button className="btn btn-outline-secondary" onClick={() => navigate('/apply-movement-pass')}>
+              Apply for Movement Pass
+            </button>
             <button className="btn btn-outline-success" onClick={() => navigate('/leave-status')}>
               Track Leave
             </button>
             <button className="btn btn-outline-info" onClick={() => navigate('/entry-slip-status')}>
               Track Entry Slip
             </button>
+            <button className="btn btn-outline-success" onClick={() => navigate('/movement-pass-status')}>
+              Track Movement Pass
+            </button>
           </div>
         )}
 
         {activeRole === 'FLA' && (
-          <button className="btn btn-primary mt-3" onClick={() => navigate('/fla-dashboard')}>
-            View Pending Approvals (FLA)
-          </button>
+
+          <div className="d-flex justify-content-center flex-wrap gap-3">
+            <button className="btn btn-primary" onClick={() => navigate('/fla-dashboard')}>
+              View Pending Approvals (FLA)
+            </button>
+            <button className="btn btn-outline-info" onClick={() => navigate('/fla-upcoming')}>
+              View Upcoming Leaves (FLA)
+            </button>
+          </div>
         )}
 
         {activeRole === 'SLA' && (
-          <button className="btn btn-primary mt-3" onClick={() => navigate('/sla-dashboard')}>
-            View Pending Approvals (SLA)
-          </button>
+          <div className="d-flex justify-content-center flex-wrap gap-3">
+            <button className="btn btn-primary" onClick={() => navigate('/sla-dashboard')}>
+              View Pending Approvals (SLA)
+            </button>
+            <button className="btn btn-outline-info" onClick={() => navigate('/sla-upcoming')}>
+              View Upcoming Leaves (SLA)
+            </button>
+          </div>
         )}
 
         {activeRole === 'HR' && (
-          <button className="btn btn-primary mt-3" onClick={() => navigate('/hr-dashboard')}>
-            View HR Approvals
-          </button>
+          <div className="d-flex justify-content-center flex-wrap gap-3">
+            <button className="btn btn-primary" onClick={() => navigate('/hr-dashboard')}>
+              View Pending Approvals (HR)
+            </button>
+            <button className="btn btn-outline-info" onClick={() => navigate('/hr-upcoming')}>
+              View Upcoming Leaves (HR)
+            </button>
+          </div>
         )}
       </div>
     </div>

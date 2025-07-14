@@ -37,6 +37,11 @@ import LeaveStatus from './pages/LeaveStatus';
 import EntrySlipStatus from './pages/EntrySlipStatus';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import FLAUpcoming from './pages/FLAUpcoming';
+import SLAUpcoming from './pages/SLAUpcoming';
+import HRUpcoming from './pages/HRUpcoming';
+import ApplyMovementPass from './pages/ApplyMovementPass';
+import MovementPassStatus from './pages/MovementPassStatus';
 
 function App() {
   return (
@@ -50,11 +55,16 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/apply-leave" element={<ApplyLeave />} />
+        <Route path="/apply-movement-pass" element={<ApplyMovementPass />} />
         <Route path="/sla-dashboard" element={<SLAPanel />} />
         <Route path="/hr-dashboard" element={<HRPanel />} />
         <Route path="/fla-dashboard" element={<FLAPanel />} />
+        <Route path="/fla-upcoming" element={<FLAUpcoming />} />
+        <Route path="/sla-upcoming" element={<SLAUpcoming />} />
+        <Route path="/hr-upcoming" element={<HRUpcoming />} />
         <Route path="/entry-slip-status" element={<EntrySlipStatus />} />
         <Route path="/leave-status" element={<LeaveStatus />} />
+        <Route path="/movement-pass-status" element={<MovementPassStatus />} />
         <Route path="/entry-slip" element={<ApplyEntrySlip />} />
       </Routes>
     </Router>
