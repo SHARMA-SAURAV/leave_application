@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { FlaApprovalRow } from '../components/LeaveRequestTables';
+import { FlaPassApprovalRow } from '../components/MovementPassTables';
 import { leaveApproveApi } from '../services/leave';
+import { movementPassApproveApi } from '../services/move';
 
 
 const FLAPanel = () => {
   const [entrySlips, setEntrySlips] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
+  const [movementPasses, setMovementPasses] = useState([]);
   const [slaUsers, setSlaUsers] = useState([]);
   const [selectedSLA, setSelectedSLA] = useState({});
   const [loading, setLoading] = useState(false);
@@ -33,6 +36,15 @@ const FLAPanel = () => {
     }
   }
 
+  const fetchMovementPasses = async () => {
+    try {
+      const res = await api.get('/movement/fla/all');
+      setMovementPasses(res.data);
+    } catch (err) {
+      console.error('Error fetching movement passes:', err);
+    }
+  }
+
   const fetchSLAs = async () => {
     try {
       const res = await api.get('/users?role=SLA');
@@ -45,6 +57,7 @@ const FLAPanel = () => {
   useEffect(() => {
     fetchData();
     fetchLeaveRequests();
+    fetchMovementPasses();
     fetchSLAs();
   }, []);
 
@@ -94,6 +107,19 @@ const FLAPanel = () => {
       console.error(`Failed to ${action} leave request`, err);
     } finally {
       setLeaveActionLoading((prev) => ({ ...prev, [id]: false }));
+    }
+  };
+
+  const handlePassApproval = async (id, action, slaId = 0) => {
+    try {
+      const result = await movementPassApproveApi(id, "fla", action, {
+        slaSelected: slaId,
+      });
+      if (result) {
+        setMovementPasses((prev) => prev.filter((request) => request.id !== id));
+      }
+    } catch (err) {
+      console.error(`Failed to ${action} movement pass`, err);
     }
   };
 
@@ -198,6 +224,39 @@ const FLAPanel = () => {
                   request={request}
                   approvers={slaUsers}
                   action={handleLeaveApproval}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <h3 className="text-primary mb-4">Movement Passes</h3>
+      {movementPasses.length === 0 ? (
+        <p className="text-muted">No pending movement passes for FLA.</p>
+      ) : (
+        <div className="table-responsive">
+          <table className="table table-striped table-hover">
+            <thead className="table-dark">
+              <tr>
+                <th scope="col">Employee</th>
+                <th scope="col">Email</th>
+                <th scope="col">ID</th>
+                <th scope="col">Dept</th>
+                <th scope="col">Date</th>
+                <th scope="col">Time Period</th>
+                <th scope="col">Reason</th>
+                <th scope="col">SLA Approver</th>
+                <th scope="col" className="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {movementPasses.map((request) => (
+                <FlaPassApprovalRow
+                  key={request.id}
+                  request={request}
+                  approvers={slaUsers}
+                  action={handlePassApproval}
                 />
               ))}
             </tbody>

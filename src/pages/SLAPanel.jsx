@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { SlaApprovalRow } from '../components/LeaveRequestTables';
+import { SlaPassApprovalRow } from '../components/MovementPassTables';
 import { leaveApproveApi } from '../services/leave';
+import { movementPassApproveApi } from '../services/move';
 
 
 const SLAPanel = () => {
   const [entrySlips, setEntrySlips] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
+  const [movementPasses, setMovementPasses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [_, setLeaveActionLoading] = useState({});
 
@@ -28,9 +31,19 @@ const SLAPanel = () => {
     }
   };
 
+  const fetchMovementPasses = async () => {
+    try {
+      const res = await api.get('/movement/sla/all');
+      setMovementPasses(res.data);
+    } catch (err) {
+      console.error('Error fetching movement passes:', err);
+    }
+  }
+
   useEffect(() => {
     fetchData();
     fetchLeaveRequests();
+    fetchMovementPasses();
   }, []);
 
   const handleEntrySlipAction = async (id, action) => {
@@ -55,6 +68,17 @@ const SLAPanel = () => {
     }
     setLeaveActionLoading((prev) => ({ ...prev, [id]: false }));
   }
+
+  const handlePassApproval = async (id, action) => {
+    try {
+      const result = await movementPassApproveApi(id, "sla", action);
+      if (result) {
+        setMovementPasses((prev) => prev.filter((request) => request.id !== id));
+      }
+    } catch (err) {
+      console.error(`Failed to ${action} movement pass`, err);
+    }
+  };
 
   return (
     <div className="container mt-4">
@@ -141,6 +165,37 @@ const SLAPanel = () => {
         </div>
       )}
 
+
+      <h3 className="text-primary mb-4">Movement Passes</h3>
+      {movementPasses.length === 0 ? (
+        <p className="text-muted">No pending movement passes for SLA.</p>
+      ) : (
+        <div className="table-responsive">
+          <table className="table table-striped table-hover">
+            <thead className="table-dark">
+              <tr>
+                <th scope="col">Employee</th>
+                <th scope="col">Email</th>
+                <th scope="col">ID</th>
+                <th scope="col">Dept</th>
+                <th scope="col">Date</th>
+                <th scope="col">Time Period</th>
+                <th scope="col">Reason</th>
+                <th scope="col" className="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {movementPasses.map((request) => (
+                <SlaPassApprovalRow
+                  key={request.id}
+                  request={request}
+                  action={handlePassApproval}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

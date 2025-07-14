@@ -3,16 +3,16 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import '../styles/Status.css';
 
-const LeaveStatus = () => {
-  const [leaves, setLeaves] = useState([]);
+const MovementPassStatus = () => {
+  const [passes, setPasses] = useState([]);
 
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await api.get('/leave/user');
-        setLeaves(res.data);
+        const res = await api.get('/movement/user');
+        setPasses(res.data);
       } catch (err) {
-        console.error('Failed to fetch leave status:', err);
+        console.error('Failed to fetch movement pass status:', err);
       }
     };
     fetchStatus();
@@ -35,32 +35,25 @@ const LeaveStatus = () => {
     }
   };
 
-  const getLeavesUsed = (leave) => {
-    const leavesUsed = [['CL', leave.clLeaves], ['PL', leave.plLeaves], ['RH', leave.rhLeaves], ['Other', leave.otherLeaves]];
-    return leavesUsed.map(([type, count]) => (
-      (count > 0) && (<span key={type} className="badge bg-success ms-1 me-1">{type}:{count}</span>)
-    ))
-  }
-
   return (
     <div className="container mt-4">
-      <h3>Your Leave Application Status</h3>
+      <h3>Your Movement Pass Status</h3>
       <table className="table table-bordered">
         <thead>
           <tr>
-            <th>Dates</th>
-            <th>Leaves Used</th>
+            <th>Date</th>
+            <th>Period</th>
             <th>Reason</th>
             <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          {leaves.map((leave) => (
-            <tr key={leave.id}>
-              <td>{leave.startDate} to {leave.endDate}</td>
-              <td>{getLeavesUsed(leave)}</td>
-              <td>{leave.reason}</td>
-              <td>{renderProgress(leave.status)}</td>
+          {passes.map((pass) => (
+            <tr key={pass.id}>
+              <td>{pass.date}</td>
+              <td>{pass.startTime} to {pass.endTime}</td>
+              <td>{pass.reason}</td>
+              <td>{renderProgress(pass.status)}</td>
             </tr>
           ))}
         </tbody>
@@ -69,4 +62,4 @@ const LeaveStatus = () => {
   );
 };
 
-export default LeaveStatus;
+export default MovementPassStatus;

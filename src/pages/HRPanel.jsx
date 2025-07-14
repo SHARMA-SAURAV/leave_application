@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { HrApprovalRow, HrApprovedRow } from '../components/LeaveRequestTables';
+import { HrPassApprovalRow, HrPassApprovedRow } from '../components/MovementPassTables';
 import { leaveApproveApi } from '../services/leave';
+import { movementPassApproveApi } from '../services/move';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -10,7 +12,9 @@ import autoTable from 'jspdf-autotable';
 const HRPanel = () => {
   const [entrySlips, setEntrySlips] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
+  const [movementPasses, setMovementPasses] = useState([]);
   const [approvedLeaveRequests, setApprovedLeaveRequests] = useState([]);
+  const [approvedMovementPasses, setApprovedMovementPasses] = useState([]);
   const [view, setView] = useState('pending'); // 'pending' or 'approved'
   const [entrySlipLoading, setEntrySlipLoading] = useState({});
   const [_, setLeaveActionLoading] = useState({});
@@ -37,9 +41,21 @@ const HRPanel = () => {
     }
   };
 
+  const fetchMovementPasses = async () => {
+    try {
+      const res = await api.get('/movement/hr/all');
+      const approvedRes = await api.get('/movement/hr/approved');
+      setMovementPasses(res.data);
+      setApprovedMovementPasses(approvedRes.data);
+    } catch (err) {
+      console.error('Error fetching movement passes:', err);
+    }
+  }
+
   useEffect(() => {
     fetchData();
     fetchLeaveRequests();
+    fetchMovementPasses();
   }, [view]);
 
   const handleEntrySlipAction = async (id, action) => {
@@ -118,6 +134,27 @@ const HRPanel = () => {
     doc.save(`leave-application-${leave.id}.pdf`);
   };
 
+  const downloadPassPDF = async (pass) => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text('Movement Pass Details', 14, 20);
+    autoTable(doc, {
+      startY: 30,
+      body: [
+        ['Employee Name', pass?.requestedBy?.name || 'N/A'],
+        ['Email', pass?.requestedBy?.email || 'N/A'],
+        ['Date', pass.date],
+        ['Start Time', pass.startTime],
+        ['End Time', pass.endTime],
+        ['Reason', pass.reason],
+        ['Status', pass.status],
+        ['FLA Approver', pass.flaApprover?.name || 'N/A'],
+        ['SLA Approver', pass.slaApprover?.name || 'N/A'],
+      ]
+    });
+    doc.save(`movement-pass-${pass.id}.pdf`);
+  };
+
 
   const handleLeaveApproval = async (id, action) => {
     setLeaveActionLoading((prev) => ({ ...prev, [id]: true }));
@@ -127,6 +164,17 @@ const HRPanel = () => {
     }
     setLeaveActionLoading((prev) => ({ ...prev, [id]: false }));
   }
+
+  const handlePassApproval = async (id, action) => {
+    try {
+      const result = await movementPassApproveApi(id, "hr", action);
+      if (result) {
+        setMovementPasses((prev) => prev.filter((request) => request.id !== id));
+      }
+    } catch (err) {
+      console.error(`Failed to ${action} movement pass`, err);
+    }
+  };
 
   return (
     <div className="container mt-4">
@@ -267,6 +315,72 @@ const HRPanel = () => {
           )
         )
       }
+
+      <h5 className="text-secondary">Movement Passes</h5>
+      {
+        view === 'pending' ? (
+          movementPasses.length === 0 ? (
+            <p className="text-muted">No pending movement passes for HR.</p>
+          ) : (
+            <div className="table-responsive">
+              <table className="table table-striped table-hover">
+                <thead className="table-dark">
+                  <tr>
+                    <th scope="col">Employee</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Dept</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Time Period</th>
+                    <th scope="col">Reason</th>
+                    <th scope="col" className="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {movementPasses.map((request) => (
+                    <HrPassApprovalRow
+                      key={request.id}
+                      request={request}
+                      action={handlePassApproval}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        ) : (
+          approvedMovementPasses.length === 0 ? (
+            <p className="text-muted">No approved movement passes for HR.</p>
+          ) : (
+            <div className="table-responsive">
+              <table className="table table-striped table-hover">
+                <thead className="table-dark">
+                  <tr>
+                    <th scope="col">Employee</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Dept</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Time Period</th>
+                    <th scope="col">Reason</th>
+                    <th scope="col" className="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {approvedMovementPasses.map((request) => (
+                    <HrPassApprovedRow
+                      key={request.id}
+                      request={request}
+                      downloadPdf={downloadPassPDF}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        )
+      }
+
     </div>
   );
 };
