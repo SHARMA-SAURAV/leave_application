@@ -87,50 +87,55 @@ const SLAPanel = () => {
       {entrySlips.length === 0 ? (
         <p className="text-muted">No pending entry slips.</p>
       ) : (
-        entrySlips.map((slip) => (
-          <div key={slip.id} className="card shadow-sm mb-4">
-            <div className="card-body">
-              <h5 className="card-title text-dark">Entry Slip</h5>
-              <p><strong>Employee Name:</strong> {slip.createdBy?.name}</p>
-              <p><strong>Email:</strong> {slip.createdBy?.email}</p>
-              <p><strong>Department:</strong> {slip.createdBy?.department}</p>
-              <p><strong>Employee ID:</strong> {slip.createdBy?.employeeId}</p>
-              <p><strong>Date:</strong> {slip.date}</p>
-              <p><strong>Time:</strong> {slip.inTime} - {slip.outTime}</p>
-              <p><strong>Reason:</strong> {slip.reason}</p>
-
-              <div className="d-flex gap-2 mt-3">
-                <button className="btn btn-success" onClick={() => handleEntrySlipAction(slip.id, 'approve')}>
-
-                  {loading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                      Approving...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-check-circle me-1"></i> Approve
-                    </>
-                  )}
-
-                </button>
-                <button className="btn btn-danger" onClick={() => handleEntrySlipAction(slip.id, 'reject')}>
-                  {loading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                      Rejecting...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-times me-1"></i> Reject
-                    </>
-                  )}
-
-                </button>
-              </div>
-            </div>
-          </div>
-        ))
+        <div className="table-responsive mb-4">
+          <table className="table table-striped table-hover">
+            <thead className="table-dark">
+              <tr>
+                <th scope="col" className="text-center">Employee Name</th>
+                <th scope="col" className="text-center">Email</th>
+                <th scope="col" className="text-center">Department</th>
+                <th scope="col" className="text-center">Employee ID</th>
+                <th scope="col" className="text-center">Date</th>
+                <th scope="col" className="text-center">Time</th>
+                <th scope="col" className="text-center">Reason</th>
+                <th scope="col" className="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entrySlips.map((slip) => (
+                <tr key={slip.id}>
+                  <td className="align-middle text-center">{slip.createdBy?.name}</td>
+                  <td className="align-middle text-center">{slip.createdBy?.email}</td>
+                  <td className="align-middle text-center">{slip.createdBy?.department}</td>
+                  <td className="align-middle text-center">{slip.createdBy?.employeeId}</td>
+                  <td className="align-middle text-center">{slip.date}</td>
+                  <td className="align-middle text-center">{slip.inTime} - {slip.outTime}</td>
+                  <td className="align-middle text-center">{slip.reason}</td>
+                  <td className="align-middle text-center">
+                    <div className="d-flex justify-content-center gap-2">
+                      <button className="btn btn-success btn-sm" onClick={() => handleEntrySlipAction(slip.id, 'approve')} disabled={loading}>
+                        {loading ? (
+                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        ) : (
+                          <i className="fas fa-check-circle me-1"></i>
+                        )}
+                        Approve
+                      </button>
+                      <button className="btn btn-danger btn-sm" onClick={() => handleEntrySlipAction(slip.id, 'reject')} disabled={loading}>
+                        {loading ? (
+                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        ) : (
+                          <i className="fas fa-times me-1"></i>
+                        )}
+                        Reject
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <h3 className="text-primary mb-4">Leave Requests</h3>
