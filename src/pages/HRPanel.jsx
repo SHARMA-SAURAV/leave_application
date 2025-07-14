@@ -13,10 +13,10 @@ const HRPanel = () => {
   const [movementPasses, setMovementPasses] = useState([]);
   const [approvedLeaveRequests, setApprovedLeaveRequests] = useState([]);
   const [approvedMovementPasses, setApprovedMovementPasses] = useState([]);
-  const [view, setView] = useState('pending'); // 'pending' or 'approved'
+  const [view, setView] = useState('pending');
   const [entrySlipLoading, setEntrySlipLoading] = useState({});
   const [_, setLeaveActionLoading] = useState({});
-  const [approvedTab, setApprovedTab] = useState('entryslip'); // 'entryslip' or 'leaverequest'
+  const [activeTab, setActiveTab] = useState('entry');
 
   const fetchData = async () => {
     try {
@@ -47,7 +47,7 @@ const HRPanel = () => {
     } catch (err) {
       console.error('Error fetching movement passes:', err);
     }
-  }
+  };
 
   useEffect(() => {
     fetchData();
@@ -63,97 +63,23 @@ const HRPanel = () => {
       fetchData();
     } catch (err) {
       console.error(`Failed to ${action} entry slip`, err);
-    }
-    finally {
+    } finally {
       setEntrySlipLoading((prev) => ({ ...prev, [id]: false }));
     }
   };
 
-  const downloadEntrySlipPDF = (slip) => {
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.text('Entry Slip Details', 14, 20);
-
-    autoTable(doc, {
-      startY: 30,
-      body: [
-        ['Created By', slip.createdBy?.name || 'N/A'],
-        ['Email', slip.createdBy?.email || 'N/A'],
-        ['Department', slip.createdBy?.department || 'N/A'],
-        ['Designation', slip.createdBy?.designation || 'N/A'],
-        ['Date', slip.date],
-        ['Time', `${slip.inTime} - ${slip.outTime}`],
-        ['Reason', slip.reason],
-        ['Status', slip.status],
-        ['FLA Approver', slip.approvedByFLA?.name || 'N/A'],
-        ['SLA Approver', slip.approvedBySLA?.name || 'N/A'],
-        ['HR Approver', slip.approvedByHR?.name || 'N/A'],
-      ]
-    });
-
-    doc.save(`entry-slip-${slip.id}.pdf`);
-  };
-
-  const downloadLeavePDF = async (leave) => {
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.text('Leave Application Details', 14, 20);
-    const types = [];
-    if (leave.clLeaves > 0) types.push("CL: " + leave.clLeaves);
-    if (leave.plLeaves > 0) types.push("PL: " + leave.plLeaves);
-    if (leave.rhLeaves > 0) types.push("RH: " + leave.rhLeaves);
-    if (leave.otherLeaves > 0) types.push("Other: " + leave.otherLeaves);
-    autoTable(doc, {
-      startY: 30,
-      body: [
-        ['Employee Name', leave?.requestedBy?.name || 'N/A'],
-        ['Email', leave?.requestedBy?.email || 'N/A'],
-        ['Start Date', leave.startDate],
-        ['End Date', leave.endDate],
-        ['Reason', leave.reason],
-        ['Substitute', leave.substitute || 'N/A'],
-        ['Type', types.join(', ')],
-        ['Status', leave.status],
-        ['FLA Approver', leave.flaApprover?.name || 'N/A'],
-        ['SLA Approver', leave.slaApprover?.name || 'N/A'],
-      ]
-    });
-    doc.save(`leave-application-${leave.id}.pdf`);
-  };
-
-  const downloadPassPDF = async (pass) => {
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.text('Movement Pass Details', 14, 20);
-    autoTable(doc, {
-      startY: 30,
-      body: [
-        ['Employee Name', pass?.requestedBy?.name || 'N/A'],
-        ['Email', pass?.requestedBy?.email || 'N/A'],
-        ['Date', pass.date],
-        ['Start Time', pass.startTime],
-        ['End Time', pass.endTime],
-        ['Reason', pass.reason],
-        ['Status', pass.status],
-        ['FLA Approver', pass.flaApprover?.name || 'N/A'],
-        ['SLA Approver', pass.slaApprover?.name || 'N/A'],
-      ]
-    });
-    doc.save(`movement-pass-${pass.id}.pdf`);
-  };
-
   const handleLeaveApproval = async (id, action) => {
     setLeaveActionLoading((prev) => ({ ...prev, [id]: true }));
-    const result = await leaveApproveApi(id, "hr", action);
+    const result = await leaveApproveApi(id, 'hr', action);
     if (result) {
       setLeaveRequests((prev) => prev.filter((request) => request.id !== id));
     }
     setLeaveActionLoading((prev) => ({ ...prev, [id]: false }));
-  }
+  };
 
   const handlePassApproval = async (id, action) => {
     try {
-      const result = await movementPassApproveApi(id, "hr", action);
+      const result = await movementPassApproveApi(id, 'hr', action);
       if (result) {
         setMovementPasses((prev) => prev.filter((request) => request.id !== id));
       }
@@ -162,267 +88,191 @@ const HRPanel = () => {
     }
   };
 
+  const downloadPDF = (title, data, fileName) => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text(title, 14, 20);
+    autoTable(doc, {
+      startY: 30,
+      body: data,
+    });
+    doc.save(`${fileName}.pdf`);
+  };
+
+  const getNotificationBadge = (count) => (
+    count > 0 && <span className="badge bg-danger ms-1">{count}</span>
+  );
+
+  const renderTabContent = () => {
+    if (activeTab === 'entry') {
+      const data = view === 'pending' ? entrySlips : entrySlips;
+      return (
+        <div className="table-responsive">
+          <table className="table table-striped">
+            <thead className="table-dark">
+              <tr>
+                <th>Name</th><th>Email</th><th>Dept</th><th>Date</th><th>Time</th><th>Reason</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.length === 0 ? (
+                <tr><td colSpan="7" className="text-center text-muted">No data found.</td></tr>
+              ) : (
+                data.map((slip) => (
+                  <tr key={slip.id}>
+                    <td>{slip.createdBy?.name}</td>
+                    <td>{slip.createdBy?.email}</td>
+                    <td>{slip.createdBy?.department}</td>
+                    <td>{slip.date}</td>
+                    <td>{slip.inTime} - {slip.outTime}</td>
+                    <td>{slip.reason}</td>
+                    <td>
+                      {view === 'pending' ? (
+                        <>
+                          <button className="btn btn-success btn-sm me-2" onClick={() => handleEntrySlipAction(slip.id, 'approve')}>Approve</button>
+                          <button className="btn btn-danger btn-sm" onClick={() => handleEntrySlipAction(slip.id, 'reject')}>Reject</button>
+                        </>
+                      ) : (
+                        <button className="btn btn-outline-dark btn-sm" onClick={() => downloadPDF('Entry Slip', [
+                          ['Created By', slip.createdBy?.name || 'N/A'],
+                          ['Email', slip.createdBy?.email || 'N/A'],
+                          ['Date', slip.date],
+                          ['Time', `${slip.inTime} - ${slip.outTime}`],
+                          ['Reason', slip.reason],
+                          ['Status', slip.status],
+                        ], `entry-slip-${slip.id}`)}>
+                          Download PDF
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    if (activeTab === 'leave') {
+      const data = view === 'pending' ? leaveRequests : approvedLeaveRequests;
+      return (
+        <div className="table-responsive">
+          <table className="table table-striped">
+            <thead className="table-dark">
+              <tr>
+                <th>Employee</th><th>Email</th><th>Period</th><th>Reason</th><th>Type</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.length === 0 ? (
+                <tr><td colSpan="6" className="text-center text-muted">No data found.</td></tr>
+              ) : (
+                data.map((request) => (
+                  <tr key={request.id}>
+                    <td>{request.requestedBy?.name}</td>
+                    <td>{request.requestedBy?.email}</td>
+                    <td>{request.startDate} to {request.endDate}</td>
+                    <td>{request.reason}</td>
+                    <td>{request.leaveType}</td>
+                    <td>
+                      {view === 'pending' ? (
+                        <>
+                          <button className="btn btn-success btn-sm me-2" onClick={() => handleLeaveApproval(request.id, 'approve')}>Approve</button>
+                          <button className="btn btn-danger btn-sm" onClick={() => handleLeaveApproval(request.id, 'reject')}>Reject</button>
+                        </>
+                      ) : (
+                        <button className="btn btn-outline-dark btn-sm" onClick={() => downloadPDF('Leave Application', [
+                          ['Name', request.requestedBy?.name],
+                          ['Email', request.requestedBy?.email],
+                          ['Dates', `${request.startDate} - ${request.endDate}`],
+                          ['Type', request.leaveType],
+                          ['Status', request.status],
+                        ], `leave-${request.id}`)}>
+                          Download PDF
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    if (activeTab === 'movement') {
+      const data = view === 'pending' ? movementPasses : approvedMovementPasses;
+      return (
+        <div className="table-responsive">
+          <table className="table table-striped">
+            <thead className="table-dark">
+              <tr>
+                <th>Employee</th><th>Email</th><th>Date</th><th>Time</th><th>Reason</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.length === 0 ? (
+                <tr><td colSpan="6" className="text-center text-muted">No data found.</td></tr>
+              ) : (
+                data.map((request) => (
+                  <tr key={request.id}>
+                    <td>{request.requestedBy?.name}</td>
+                    <td>{request.requestedBy?.email}</td>
+                    <td>{request.date}</td>
+                    <td>{request.startTime} - {request.endTime}</td>
+                    <td>{request.reason}</td>
+                    <td>
+                      {view === 'pending' ? (
+                        <>
+                          <button className="btn btn-success btn-sm me-2" onClick={() => handlePassApproval(request.id, 'approve')}>Approve</button>
+                          <button className="btn btn-danger btn-sm" onClick={() => handlePassApproval(request.id, 'reject')}>Reject</button>
+                        </>
+                      ) : (
+                        <button className="btn btn-outline-dark btn-sm" onClick={() => downloadPDF('Movement Pass', [
+                          ['Name', request.requestedBy?.name],
+                          ['Email', request.requestedBy?.email],
+                          ['Date', request.date],
+                          ['Time', `${request.startTime} - ${request.endTime}`],
+                          ['Status', request.status],
+                        ], `movement-${request.id}`)}>
+                          Download PDF
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+  };
+
   return (
     <div className="container mt-4">
-      <h3 className="text-primary mb-4">HR Panel – {view === 'pending' ? 'Pending' : 'Approved'} Applications</h3>
+      <h3 className="text-primary mb-3">HR Panel – {view === 'pending' ? 'Pending' : 'Approved'} Applications</h3>
 
-      <div className="mb-4">
-        <button
-          className={`btn btn-${view === 'pending' ? 'primary' : 'outline-primary'} me-2`}
-          onClick={() => setView('pending')}
-        >
-          View Pending
-        </button>
-        <button
-          className={`btn btn-${view === 'approved' ? 'primary' : 'outline-primary'}`}
-          onClick={() => setView('approved')}
-        >
-          View Approved
-        </button>
+      <div className="mb-3">
+        <button className={`btn btn-${view === 'pending' ? 'primary' : 'outline-primary'} me-2`} onClick={() => setView('pending')}>Pending</button>
+        <button className={`btn btn-${view === 'approved' ? 'primary' : 'outline-primary'}`} onClick={() => setView('approved')}>Approved</button>
       </div>
 
-      {view === 'approved' && (
-        <div className="mb-3">
-          <button
-            className={`btn btn-${approvedTab === 'entryslip' ? 'primary' : 'outline-primary'} me-2`}
-            onClick={() => setApprovedTab('entryslip')}
-          >
-            Approved Entry Slips
-          </button>
-          <button
-            className={`btn btn-${approvedTab === 'leaverequest' ? 'primary' : 'outline-primary'}`}
-            onClick={() => setApprovedTab('leaverequest')}
-          >
-            Approved Leave Requests
-          </button>
-        </div>
-      )}
+      <ul className="nav nav-tabs mb-4">
+        <li className="nav-item">
+          <button className={`nav-link ${activeTab === 'entry' ? 'active' : ''}`} onClick={() => setActiveTab('entry')}>Entry Slips {getNotificationBadge(view === 'pending' ? entrySlips.length : 0)}</button>
+        </li>
+        <li className="nav-item">
+          <button className={`nav-link ${activeTab === 'leave' ? 'active' : ''}`} onClick={() => setActiveTab('leave')}>Leave Requests {getNotificationBadge(view === 'pending' ? leaveRequests.length : 0)}</button>
+        </li>
+        <li className="nav-item">
+          <button className={`nav-link ${activeTab === 'movement' ? 'active' : ''}`} onClick={() => setActiveTab('movement')}>Movement Passes {getNotificationBadge(view === 'pending' ? movementPasses.length : 0)}</button>
+        </li>
+      </ul>
 
-      {view === 'approved' ? (
-        approvedTab === 'entryslip' ? (
-          entrySlips.length === 0 ? (
-            <p className="text-muted">No approved entry slips.</p>
-          ) : (
-            <div className="table-responsive mb-4">
-              <table className="table table-striped table-hover">
-                <thead className="table-dark">
-                  <tr>
-                    <th scope="col" className="text-center">Employee Name</th>
-                    <th scope="col" className="text-center">Email</th>
-                    <th scope="col" className="text-center">Department</th>
-                    <th scope="col" className="text-center">Employee ID</th>
-                    <th scope="col" className="text-center">Date</th>
-                    <th scope="col" className="text-center">Time</th>
-                    <th scope="col" className="text-center">Reason</th>
-                    <th scope="col" className="text-center">Download</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entrySlips.map((slip) => (
-                    <tr key={slip.id}>
-                      <td className="align-middle text-center">{slip.createdBy?.name}</td>
-                      <td className="align-middle text-center">{slip.createdBy?.email}</td>
-                      <td className="align-middle text-center">{slip.createdBy?.department}</td>
-                      <td className="align-middle text-center">{slip.createdBy?.employeeId}</td>
-                      <td className="align-middle text-center">{slip.date}</td>
-                      <td className="align-middle text-center">{slip.inTime} - {slip.outTime}</td>
-                      <td className="align-middle text-center">{slip.reason}</td>
-                      <td className="align-middle text-center">
-                        <button className="btn btn-outline-dark btn-sm" onClick={() => downloadEntrySlipPDF(slip)}>
-                          <i className="fas fa-download me-1"></i> Download PDF
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )
-        ) : (
-          approvedLeaveRequests.length === 0 ? (
-            <p className="text-muted">No approved leave applications for HR.</p>
-          ) : (
-            <div className="table-responsive mb-4">
-              <table className="table table-striped table-hover">
-                <thead className="table-dark">
-                  <tr>
-                    <th scope="col">Employee</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">ID</th>
-                    <th scope="col">Dept</th>
-                    <th scope="col">Leave Period</th>
-                    <th scope="col">Reason</th>
-                    <th scope="col">Leave Days</th>
-                    <th scope="col">Substitute</th>
-                    <th scope="col" className="text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {approvedLeaveRequests.map((request) => (
-                    <HrApprovedRow
-                      key={request.id}
-                      request={request}
-                      downloadPdf={downloadLeavePDF}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )
-        )
-      ) : (
-        <>
-          <h5 className="text-secondary">Entry Slips</h5>
-          {entrySlips.length === 0 ? (
-            <p className="text-muted">No pending entry slips.</p>
-          ) : (
-            <div className="table-responsive mb-4">
-              <table className="table table-striped table-hover">
-                <thead className="table-dark">
-                  <tr>
-                    <th scope="col" className="text-center">Employee Name</th>
-                    <th scope="col" className="text-center">Email</th>
-                    <th scope="col" className="text-center">Department</th>
-                    <th scope="col" className="text-center">Employee ID</th>
-                    <th scope="col" className="text-center">Date</th>
-                    <th scope="col" className="text-center">Time</th>
-                    <th scope="col" className="text-center">Reason</th>
-                    <th scope="col" className="text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entrySlips.map((slip) => (
-                    <tr key={slip.id}>
-                      <td className="align-middle text-center">{slip.createdBy?.name}</td>
-                      <td className="align-middle text-center">{slip.createdBy?.email}</td>
-                      <td className="align-middle text-center">{slip.createdBy?.department}</td>
-                      <td className="align-middle text-center">{slip.createdBy?.employeeId}</td>
-                      <td className="align-middle text-center">{slip.date}</td>
-                      <td className="align-middle text-center">{slip.inTime} - {slip.outTime}</td>
-                      <td className="align-middle text-center">{slip.reason}</td>
-                      <td className="align-middle text-center">
-                        <div className="d-flex justify-content-center gap-2">
-                          <button className="btn btn-success btn-sm" onClick={() => handleEntrySlipAction(slip.id, 'approve')}>
-                            {entrySlipLoading[slip.id] ? (
-                              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                            ) : (
-                              <i className="fas fa-check-circle me-1"></i>
-                            )}
-                            Approve
-                          </button>
-                          <button className="btn btn-danger btn-sm" onClick={() => handleEntrySlipAction(slip.id, 'reject')}>
-                            {entrySlipLoading[slip.id] ? (
-                              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                            ) : (
-                              <i className="fas fa-times me-1"></i>
-                            )}
-                            Reject
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          
-          <h5 className="text-secondary">Leave Requests</h5>
-          {leaveRequests.length === 0 ? (
-            <p className="text-muted">No pending leave applications for HR.</p>
-          ) : (
-            <div className="table-responsive mb-4">
-              <table className="table table-striped table-hover">
-                <thead className="table-dark">
-                  <tr>
-                    <th scope="col">Employee</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">ID</th>
-                    <th scope="col">Dept</th>
-                    <th scope="col">Leave Period</th>
-                    <th scope="col">Reason</th>
-                    <th scope="col">Leave Days</th>
-                    <th scope="col">Substitute</th>
-                    <th scope="col" className="text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {leaveRequests.map((request) => (
-                    <HrApprovalRow
-                      key={request.id}
-                      request={request}
-                      action={handleLeaveApproval}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </>
-      )}
-
-      <h5 className="text-secondary">Movement Passes</h5>
-      {view === 'pending' ? (
-        movementPasses.length === 0 ? (
-          <p className="text-muted">No pending movement passes for HR.</p>
-        ) : (
-          <div className="table-responsive">
-            <table className="table table-striped table-hover">
-              <thead className="table-dark">
-                <tr>
-                  <th scope="col">Employee</th>
-                  <th scope="col">Email</th>
-                  <th scope="col">ID</th>
-                  <th scope="col">Dept</th>
-                  <th scope="col">Date</th>
-                  <th scope="col">Time Period</th>
-                  <th scope="col">Reason</th>
-                  <th scope="col" className="text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {movementPasses.map((request) => (
-                  <HrPassApprovalRow
-                    key={request.id}
-                    request={request}
-                    action={handlePassApproval}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )
-      ) : (
-        approvedMovementPasses.length === 0 ? (
-          <p className="text-muted">No approved movement passes for HR.</p>
-        ) : (
-          <div className="table-responsive">
-            <table className="table table-striped table-hover">
-              <thead className="table-dark">
-                <tr>
-                  <th scope="col">Employee</th>
-                  <th scope="col">Email</th>
-                  <th scope="col">ID</th>
-                  <th scope="col">Dept</th>
-                  <th scope="col">Date</th>
-                  <th scope="col">Time Period</th>
-                  <th scope="col">Reason</th>
-                  <th scope="col" className="text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {approvedMovementPasses.map((request) => (
-                  <HrPassApprovedRow
-                    key={request.id}
-                    request={request}
-                    downloadPdf={downloadPassPDF}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )
-      )}
+      {renderTabContent()}
     </div>
   );
 };
