@@ -4,7 +4,8 @@ import ApplicationFormBox from '../components/ApplicationFormBox';
 import { WideInput } from '../components/FormControls';
 import { LabelNumberInput } from '../components/LabelCheckbox';
 
-const APPROVER_TYPES = ["FLA", "SLA"]
+const APPROVER_TYPES = ['FLA', 'SLA'];
+const PRIMARY_BLUE = 'rgb(13, 110, 253)';
 
 const ApplyLeave = () => {
   const [startDate, setStartDate] = useState('');
@@ -21,17 +22,22 @@ const ApplyLeave = () => {
     Other: 0,
   });
 
+  const totalLeaves =
+    selectedLeaves.PL +
+    selectedLeaves.CL +
+    selectedLeaves.RH +
+    selectedLeaves.Other;
+
   useEffect(() => {
     const fetchApprovers = async () => {
       try {
-        const persons = await api.get(`/users?role=${approvalType}`);
-        setApproverList(persons.data);
-      }
-      catch (err) {
+        const res = await api.get(`/users?role=${approvalType}`);
+        setApproverList(res.data);
+      } catch (err) {
         console.error('Error fetching approvers:', err);
         alert('Failed to fetch approvers. Please try again later.');
       }
-    }
+    };
     fetchApprovers();
   }, [approvalType]);
 
@@ -41,16 +47,23 @@ const ApplyLeave = () => {
     setCurrentApprover('');
   };
 
-  const totalLeaves = selectedLeaves.PL + selectedLeaves.CL + selectedLeaves.RH + selectedLeaves.Other;
+  const handleLeavesChange = (type, val) => {
+    const updated = { ...selectedLeaves, [type]: parseInt(val) || 0 };
+    if (updated.PL > 0 && updated.CL > 0) updated.CL = 0;
+    setSelectedLeaves(updated);
+  };
+
+  const todayDate = new Date().toISOString().split('T')[0];
+
   const handleSubmit = async (e) => {
-    setLoading(true);
     e.preventDefault();
     if (totalLeaves <= 0) {
       alert('Please select at least one type of leave.');
       return;
     }
+    setLoading(true);
     try {
-      const requestData = {
+      await api.post('/leave/apply', {
         startDate,
         endDate,
         reason,
@@ -60,44 +73,25 @@ const ApplyLeave = () => {
         clLeaves: selectedLeaves.CL,
         rhLeaves: selectedLeaves.RH,
         otherLeaves: selectedLeaves.Other,
-      }
-      await api.post('/leave/apply', requestData);
+      });
       alert('Leave applied successfully!');
-      // Reset form fields
       setStartDate('');
       setEndDate('');
       setReason('');
       setApprovalType(APPROVER_TYPES[0]);
       setApproverList([]);
       setCurrentApprover('');
-      setSelectedLeaves({
-        PL: 0,
-        CL: 0,
-        RH: 0,
-        Other: 0,
-      });
+      setSelectedLeaves({ PL: 0, CL: 0, RH: 0, Other: 0 });
     } catch (err) {
       alert('Failed to apply leave.');
       console.error(err);
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleLeavesChange = (leaveType, newValue) => {
-    let updatedLeaves = { ...selectedLeaves };
-    updatedLeaves[leaveType] = parseInt(newValue);
-    if (updatedLeaves.PL > 0 && updatedLeaves.CL > 0) {
-      updatedLeaves.CL = 0; // Ensure only one of PL or CL can be selected
-    }
-    setSelectedLeaves(updatedLeaves);
-  }
-
-  // For setting constraints on date input
-  const todayDate = new Date().toISOString().split('T')[0];
   return (
-    <ApplicationFormBox headingText={"Apply for Leave"}>
+    <ApplicationFormBox headingText="Apply for Leave">
       <form onSubmit={handleSubmit}>
         <WideInput label="Start Date" forName="startDate">
           <input
@@ -105,8 +99,8 @@ const ApplyLeave = () => {
             name="startDate"
             className="form-control"
             value={startDate}
-            required
             onChange={(e) => setStartDate(e.target.value)}
+            required
             min={todayDate}
           />
         </WideInput>
@@ -117,8 +111,8 @@ const ApplyLeave = () => {
             name="endDate"
             className="form-control"
             value={endDate}
-            required
             onChange={(e) => setEndDate(e.target.value)}
+            required
             min={todayDate}
           />
         </WideInput>
@@ -126,16 +120,16 @@ const ApplyLeave = () => {
         <WideInput label="Reason" forName="reason">
           <textarea
             name="reason"
-            className='form-control'
+            className="form-control"
             placeholder="Enter reason for leave"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             required
-          ></textarea>
+          />
         </WideInput>
 
         <div className="row mb-3">
-          <WideInput label={"Approver Type"} forName="approverRole" divClasses="col-md-6">
+          <WideInput label="Approver Type" forName="approverRole" divClasses="col-md-6">
             <select
               name="approverRole"
               className="form-select"
@@ -143,16 +137,15 @@ const ApplyLeave = () => {
               onChange={handleApprovalTypeChange}
               required
             >
-              {
-                APPROVER_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))
-              }
+              {APPROVER_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
             </select>
           </WideInput>
-          <WideInput label={"Approver"} forName="approverId" divClasses="col-md-6">
+
+          <WideInput label="Approver" forName="approverId" divClasses="col-md-6">
             <select
               name="approverId"
               className="form-select"
@@ -160,7 +153,9 @@ const ApplyLeave = () => {
               onChange={(e) => setCurrentApprover(e.target.value)}
               required
             >
-              <option value="" disabled={true} selected={true} hidden={true}>-- Select Approver --</option>
+              <option value="" disabled hidden>
+                -- Select Approver --
+              </option>
               {approverList.map((person) => (
                 <option key={person.id} value={person.id}>
                   {person.name} ({person.email})
@@ -170,8 +165,7 @@ const ApplyLeave = () => {
           </WideInput>
         </div>
 
-        <label className="mb-3"><b>Select Leave Types</b></label>
-
+        <label className="mb-2 fw-bold">Select Leave Types</label>
         <LabelNumberInput
           label="Privilege Leave (PL)"
           inputName="plLeave"
@@ -180,7 +174,6 @@ const ApplyLeave = () => {
           disabled={selectedLeaves.CL > 0}
           required
         />
-
         <LabelNumberInput
           label="Casual Leave (CL)"
           inputName="clLeave"
@@ -189,7 +182,6 @@ const ApplyLeave = () => {
           disabled={selectedLeaves.PL > 0}
           required
         />
-
         <LabelNumberInput
           label="Restricted Holiday (RH)"
           inputName="rhLeave"
@@ -205,32 +197,40 @@ const ApplyLeave = () => {
           required
         />
 
-        <div className="row mb-3">
-          <div className="col-12">
-            <div className="d-flex align-items-center">
-              <span className="fw-bold text-muted me-2">Total Leaves:</span>
-              <span className={`badge fs-5 ${(totalLeaves) > 0 ? 'bg-success' : 'bg-secondary'}`}>{totalLeaves}</span>
-            </div>
-          </div>
+        <div className="d-flex align-items-center mt-3 mb-4">
+          <span className="fw-semibold me-2 text-muted">Total Leaves:</span>
+          <span className={`badge fs-6 ${totalLeaves > 0 ? 'bg-success' : 'bg-secondary'}`}>
+            {totalLeaves}
+          </span>
         </div>
 
         <div className="d-grid">
-
-
-           <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? (
-                <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              submiting...
+          <button
+            type="submit"
+            className="btn"
+            disabled={loading}
+            style={{
+              backgroundColor: PRIMARY_BLUE,
+              color: '#fff',
+              fontWeight: '500',
+              borderRadius: '8px',
+            }}
+          >
+            {loading ? (
+              <>
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                Submitting...
               </>
-              )
-              :(
-                <>
-               <i className="fas fa-paper-plane me-2"></i>Submit Leave Request
-                </>
-              )}
-             
-            </button>
+            ) : (
+              <>
+                <i className="fas fa-paper-plane me-2"></i> Submit Leave Request
+              </>
+            )}
+          </button>
         </div>
       </form>
     </ApplicationFormBox>

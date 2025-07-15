@@ -12,8 +12,6 @@ const ApplyEntrySlip = () => {
   const [approverRole, setApproverRole] = useState('FLA');
   const [approverList, setApproverList] = useState([]);
   const [loading, setLoading] = useState(false);
-  
-
 
   useEffect(() => {
     const fetchApprovers = async () => {
@@ -50,22 +48,32 @@ const ApplyEntrySlip = () => {
     } catch (err) {
       alert('Failed to submit entry slip.');
       console.error(err);
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   };
 
+  const primaryBlue = 'rgb(13, 110, 253)';
+
   return (
-    <div className="container mt-5">
-      <div className="card shadow p-4 mx-auto" style={{ maxWidth: '600px' }}>
-        <h3 className="mb-4 text-center">
-          <i className="fas fa-door-open me-2 text-primary"></i>
+    <div className="container my-5">
+      <div
+        className="card shadow p-4 mx-auto"
+        style={{
+          maxWidth: '600px',
+          borderRadius: '16px',
+          backgroundColor: '#ffffff',
+          border: '1px solid #e0e0e0'
+        }}
+      >
+        <h4 className="mb-4 text-center" style={{ color: primaryBlue }}>
+          <i className="fas fa-door-open me-2"></i>
           Apply Entry Slip
-        </h3>
+        </h4>
+
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label className="form-label">Date</label>
+            <label className="form-label fw-semibold">Date</label>
             <input
               type="date"
               name="date"
@@ -78,7 +86,7 @@ const ApplyEntrySlip = () => {
 
           <div className="row">
             <div className="col-md-6 mb-3">
-              <label className="form-label">In Time</label>
+              <label className="form-label fw-semibold">In Time</label>
               <input
                 type="time"
                 name="inTime"
@@ -89,7 +97,7 @@ const ApplyEntrySlip = () => {
               />
             </div>
             <div className="col-md-6 mb-3">
-              <label className="form-label">Out Time</label>
+              <label className="form-label fw-semibold">Out Time</label>
               <input
                 type="time"
                 name="outTime"
@@ -102,7 +110,7 @@ const ApplyEntrySlip = () => {
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Select Approver Type</label>
+            <label className="form-label fw-semibold">Select Approver Type</label>
             <select
               className="form-select"
               value={approverRole}
@@ -114,7 +122,7 @@ const ApplyEntrySlip = () => {
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Select Approver</label>
+            <label className="form-label fw-semibold">Select Approver</label>
             <select
               name="approverEmail"
               className="form-select"
@@ -132,7 +140,7 @@ const ApplyEntrySlip = () => {
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Reason</label>
+            <label className="form-label fw-semibold">Reason</label>
             <textarea
               name="reason"
               className="form-control"
@@ -143,21 +151,33 @@ const ApplyEntrySlip = () => {
               required
             ></textarea>
           </div>
-              
+
           <div className="d-grid">
-            <button type="submit" className="btn btn-primary" disabled={loading}>
+            <button
+              type="submit"
+              className="btn"
+              disabled={loading}
+              style={{
+                backgroundColor: primaryBlue,
+                color: '#fff',
+                fontWeight: '500',
+                borderRadius: '8px'
+              }}
+            >
               {loading ? (
                 <>
-              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              submiting...
-              </>
-              )
-              :(
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                  Submitting...
+                </>
+              ) : (
                 <>
-               <i className="fas fa-paper-plane me-2"></i>Submit Entry Slip
+                  <i className="fas fa-paper-plane me-2"></i>Submit Entry Slip
                 </>
               )}
-             
             </button>
           </div>
         </form>
@@ -167,4 +187,3 @@ const ApplyEntrySlip = () => {
 };
 
 export default ApplyEntrySlip;
-

@@ -40,90 +40,184 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <h2 className="mb-4 text-center">Dashboard ({activeRole})</h2>
+    <div
+      className="container-fluid py-5"
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(to right, #e0f2ff, #f0f8ff)',
+      }}
+    >
+      <div className="container">
+        <h2 className="mb-4 text-center text-dark fw-bold">
+          Dashboard ({activeRole})
+        </h2>
 
-      {/* 🎯 Dynamic Role Switcher */}
-      <div className="d-flex justify-content-center mb-4 gap-3 flex-wrap">
-        {userRoles.map((role) => (
-          <div
-            key={role}
-            onClick={() => handleRoleChange(role)}
-            className={`card px-4 py-2 text-center shadow-sm ${activeRole === role ? 'bg-primary text-white' : 'bg-light'
-              }`}
-            style={{ cursor: 'pointer', minWidth: '120px', borderRadius: '12px' }}
-          >
-            <div className="card-body p-2">
+        {/* 🎯 Role Switcher */}
+        <div className="d-flex justify-content-center mb-4 gap-3 flex-wrap">
+          {userRoles.map((role) => (
+            <div
+              key={role}
+              onClick={() => handleRoleChange(role)}
+              className={`shadow-sm px-4 py-2 text-center ${activeRole === role
+                ? 'text-white'
+                : 'text-dark bg-white border border-light'
+                }`}
+              style={{
+                backgroundColor: activeRole === role ? 'rgb(13, 110, 253)' : '#fff',
+                cursor: 'pointer',
+                borderRadius: '12px',
+                minWidth: '130px',
+                transition: 'all 0.3s ease',
+              }}
+            >
               <h6 className="m-0">{role}</h6>
             </div>
+          ))}
+        </div>
+
+        <hr className="text-secondary" />
+
+        {/* 🎯 Role Based Actions */}
+        <div className="text-center">
+          {activeRole === 'USER' && (
+  <div className="row justify-content-center g-4">
+    {[
+      { label: 'Apply for Leave', icon: 'calendar-plus', route: '/apply-leave' },
+      { label: 'Entry Slip', icon: 'door-open', route: '/entry-slip' },
+      { label: 'Movement Pass', icon: 'route', route: '/apply-movement-pass' },
+      { label: 'Track Leave', icon: 'clipboard-check', route: '/leave-status' },
+      { label: 'Entry Slip Status', icon: 'history', route: '/entry-slip-status' },
+      { label: 'Movement Pass Status', icon: 'road', route: '/movement-pass-status' },
+    ].map(({ label, icon, route }) => (
+      <div className="col-md-4" key={label}>
+        <div
+          className="card border-0 shadow-sm h-100"
+          style={{ cursor: 'pointer', borderRadius: '16px' }}
+          onClick={() => navigate(route)}
+        >
+          <div className="card-body d-flex align-items-center gap-3">
+            <i
+              className={`fas fa-${icon} fa-lg`}
+              style={{ color: 'rgb(13, 110, 253)', minWidth: '30px' }}
+            ></i>
+            <h6 className="mb-0 text-dark">{label}</h6>
           </div>
-        ))}
+        </div>
       </div>
+    ))}
+  </div>
+)}
 
-      <hr />
 
-      {/* 🎯 Role-based Dashboard Actions */}
-      <div className="text-center">
-        {activeRole === 'USER' && (
-          <div className="d-flex justify-content-center flex-wrap gap-3">
-            <button className="btn btn-outline-primary" onClick={() => navigate('/apply-leave')}>
-              Apply for Leave
-            </button>
-            <button className="btn btn-outline-secondary" onClick={() => navigate('/entry-slip')}>
-              Apply for Entry Slip
-            </button>
-            <button className="btn btn-outline-secondary" onClick={() => navigate('/apply-movement-pass')}>
-              Apply for Movement Pass
-            </button>
-            <button className="btn btn-outline-success" onClick={() => navigate('/leave-status')}>
-              Track Leave
-            </button>
-            <button className="btn btn-outline-info" onClick={() => navigate('/entry-slip-status')}>
-              Track Entry Slip
-            </button>
-            <button className="btn btn-outline-success" onClick={() => navigate('/movement-pass-status')}>
-              Track Movement Pass
-            </button>
-          </div>
-        )}
 
-        {activeRole === 'FLA' && (
+          {activeRole === 'FLA' && (
+  <div className="row justify-content-center g-4">
+    <div className="col-md-4">
+      <div
+        className="card border-0 shadow-sm h-100"
+        style={{ cursor: 'pointer', borderRadius: '16px' }}
+        onClick={() => navigate('/fla-dashboard')}
+      >
+        <div className="card-body d-flex align-items-center gap-3">
+          <i className="fas fa-tasks fa-lg" style={{ color: 'rgb(13, 110, 253)' }}></i>
+          <h6 className="mb-0 text-dark">Pending Approvals (FLA)</h6>
+        </div>
+      </div>
+    </div>
 
-          <div className="d-flex justify-content-center flex-wrap gap-3">
-            <button className="btn btn-primary" onClick={() => navigate('/fla-dashboard')}>
-              View Pending Approvals (FLA)
-            </button>
-            <button className="btn btn-outline-info" onClick={() => navigate('/fla-upcoming')}>
-              View Upcoming Leaves (FLA)
-            </button>
-          </div>
-        )}
+    <div className="col-md-4">
+      <div
+        className="card border-0 shadow-sm h-100"
+        style={{ cursor: 'pointer', borderRadius: '16px' }}
+        onClick={() => navigate('/fla-upcoming')}
+      >
+        <div className="card-body d-flex align-items-center gap-3">
+          <i className="fas fa-calendar-alt fa-lg" style={{ color: 'rgb(13, 110, 253)' }}></i>
+          <h6 className="mb-0 text-dark">Upcoming Leaves (FLA)</h6>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
-        {activeRole === 'SLA' && (
-          <div className="d-flex justify-content-center flex-wrap gap-3">
-            <button className="btn btn-primary" onClick={() => navigate('/sla-dashboard')}>
-              View Pending Approvals (SLA)
-            </button>
-            <button className="btn btn-outline-info" onClick={() => navigate('/sla-upcoming')}>
-              View Upcoming Leaves (SLA)
-            </button>
-          </div>
-        )}
+{activeRole === 'SLA' && (
+  <div className="row justify-content-center g-4">
+    <div className="col-md-4">
+      <div
+        className="card border-0 shadow-sm h-100"
+        style={{ cursor: 'pointer', borderRadius: '16px' }}
+        onClick={() => navigate('/sla-dashboard')}
+      >
+        <div className="card-body d-flex align-items-center gap-3">
+          <i className="fas fa-tasks fa-lg" style={{ color: 'rgb(13, 110, 253)' }}></i>
+          <h6 className="mb-0 text-dark">Pending Approvals (SLA)</h6>
+        </div>
+      </div>
+    </div>
 
-        {activeRole === 'HR' && (
-          <div className="d-flex justify-content-center flex-wrap gap-3">
-            <button className="btn btn-primary" onClick={() => navigate('/hr-dashboard')}>
-              View Pending Approvals (HR)
-            </button>
-            <button className="btn btn-outline-info" onClick={() => navigate('/hr-upcoming')}>
-              View Upcoming Leaves (HR)
-            </button>
-          </div>
-        )}
+    <div className="col-md-4">
+      <div
+        className="card border-0 shadow-sm h-100"
+        style={{ cursor: 'pointer', borderRadius: '16px' }}
+        onClick={() => navigate('/sla-upcoming')}
+      >
+        <div className="card-body d-flex align-items-center gap-3">
+          <i className="fas fa-calendar-alt fa-lg" style={{ color: 'rgb(13, 110, 253)' }}></i>
+          <h6 className="mb-0 text-dark">Upcoming Leaves (SLA)</h6>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
+          {activeRole === 'HR' && (
+  <div className="row justify-content-center g-4">
+    <div className="col-md-4">
+      <div
+        className="card border-0 shadow-sm h-100"
+        style={{ cursor: 'pointer', borderRadius: '16px' }}
+        onClick={() => navigate('/hr-dashboard')}
+      >
+        <div className="card-body d-flex align-items-center gap-3">
+          <i className="fas fa-user-check fa-lg" style={{ color: 'rgb(13, 110, 253)' }}></i>
+          <h6 className="mb-0 text-dark">Pending Approvals (HR)</h6>
+        </div>
+      </div>
+    </div>
+
+    <div className="col-md-4">
+      <div
+        className="card border-0 shadow-sm h-100"
+        style={{ cursor: 'pointer', borderRadius: '16px' }}
+        onClick={() => navigate('/hr-upcoming')}
+      >
+        <div className="card-body d-flex align-items-center gap-3">
+          <i className="fas fa-calendar-alt fa-lg" style={{ color: 'rgb(13, 110, 253)' }}></i>
+          <h6 className="mb-0 text-dark">Upcoming Leaves (HR)</h6>
+        </div>
+      </div>
+    </div>
+
+    <div className="col-md-4">
+      <div
+        className="card border-0 shadow-sm h-100"
+        style={{ cursor: 'pointer', borderRadius: '16px' }}
+        onClick={() => navigate('/register-user')}
+      >
+        <div className="card-body d-flex align-items-center gap-3">
+          <i className="fas fa-user-plus fa-lg" style={{ color: 'rgb(13, 110, 253)' }}></i>
+          <h6 className="mb-0 text-dark">Register New User</h6>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+        </div>
       </div>
     </div>
   );
 };
 
 export default Dashboard;
-
