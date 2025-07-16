@@ -1,4 +1,3 @@
-
 import { UserSelect } from "./FormControls.jsx"
 import { useState } from "react";
 
@@ -11,40 +10,40 @@ function TableCell({ children, className = "" }) {
   );
 }
 
-export function MovementPassApprovalRow({ request, children }) {
+export function EntrySlipApprovalRow({ slip, children }) {
   return (
     <tr>
       <TableCell>
         <div>
-          <strong>{request.requestedBy.name}</strong>
+          <strong>{slip.createdBy?.name}</strong>
           <br />
-          <small className="text-muted">{request.requestedBy.department}</small>
+          <small className="text-muted">{slip.createdBy?.department}</small>
         </div>
       </TableCell>
 
       <TableCell>
-        <small>{request.requestedBy.email}</small>
+        <small>{slip.createdBy?.email}</small>
       </TableCell>
 
       <TableCell>
-        <small>{request.requestedBy.department}</small>
+        <small>{slip.createdBy?.department}</small>
       </TableCell>
 
       <TableCell>
-        <small>{request.date}</small>
+        <small>{slip.date}</small>
       </TableCell>
 
       <TableCell>
         <small>
-          <strong>From:</strong> {request.startTime}
+          <strong>In:</strong> {slip.inTime}
           <br />
-          <strong>To:</strong> {request.endTime}
+          <strong>Out:</strong> {slip.outTime}
         </small>
       </TableCell>
 
       <TableCell>
-        <small title={request.reason}>
-          {request.reason}
+        <small title={slip.reason}>
+          {slip.reason}
         </small>
       </TableCell>
       {children}
@@ -72,17 +71,17 @@ function ActionButtons({ onApprove, onReject, approveDisabled = false, rejectDis
   );
 }
 
-export function FlaPassApprovalRow({ request, action, approvers }) {
+export function FlaEntrySlipApprovalRow({ slip, action, approvers }) {
   const [slaSelected, setSlaSelected] = useState("");
   const [loading, setLoading] = useState(false);
 
   return (
-    <MovementPassApprovalRow request={request}>
+    <EntrySlipApprovalRow slip={slip}>
       <TableCell>
         <UserSelect
           users={approvers}
           label="SLA Approver"
-          inputName={`sla-approver-${request.id}`}
+          inputName={`sla-approver-${slip.id}`}
           value={slaSelected}
           onChange={setSlaSelected}
         />
@@ -91,75 +90,75 @@ export function FlaPassApprovalRow({ request, action, approvers }) {
         <ActionButtons
           onApprove={() => {
             setLoading(true);
-            action(request.id, "approve", slaSelected)
+            action(slip.id, "approve", slaSelected)
               .finally(() => setLoading(false));
           }}
           onReject={() => {
             setLoading(true);
-            action(request.id, "reject")
+            action(slip.id, "reject")
               .finally(() => setLoading(false));
           }}
           approveDisabled={!slaSelected}
           loading={loading}
         />
       </TableCell>
-    </MovementPassApprovalRow>
+    </EntrySlipApprovalRow>
   );
 }
 
-export function SlaPassApprovalRow({ request, action }) {
+export function SlaEntrySlipApprovalRow({ slip, action }) {
   const [loading, setLoading] = useState(false);
 
   return (
-    <MovementPassApprovalRow request={request}>
+    <EntrySlipApprovalRow slip={slip}>
       <TableCell>
         <ActionButtons
           onApprove={() => {
             setLoading(true);
-            action(request.id, "approve")
+            action(slip.id, "approve")
               .finally(() => setLoading(false));
           }}
           onReject={() => {
             setLoading(true);
-            action(request.id, "reject")
+            action(slip.id, "reject")
               .finally(() => setLoading(false));
           }}
           loading={loading}
         />
       </TableCell>
-    </MovementPassApprovalRow>
+    </EntrySlipApprovalRow>
   );
 }
 
-export function HrPassApprovalRow({ request, action }) {
+export function HrEntrySlipApprovalRow({ slip, action }) {
   const [loading, setLoading] = useState(false);
 
   return (
-    <MovementPassApprovalRow request={request}>
+    <EntrySlipApprovalRow slip={slip}>
       <TableCell>
         <ActionButtons
           onApprove={() => {
             setLoading(true);
-            action(request.id, "approve")
+            action(slip.id, "approve")
               .finally(() => setLoading(false));
           }}
           onReject={() => {
             setLoading(true);
-            action(request.id, "reject")
+            action(slip.id, "reject")
               .finally(() => setLoading(false));
           }}
           loading={loading}
         />
       </TableCell>
-    </MovementPassApprovalRow>
+    </EntrySlipApprovalRow>
   );
 }
 
-export function HrPassApprovedRow({ request, downloadPdf }) {
+export function HrEntrySlipApprovedRow({ slip, downloadPdf }) {
   const [loading, setLoading] = useState(false);
 
   return (
-    <MovementPassApprovalRow request={request}>
+    <EntrySlipApprovalRow slip={slip}>
       <TableCell>
         {loading ? (
           <div className="text-center">
@@ -169,13 +168,13 @@ export function HrPassApprovedRow({ request, downloadPdf }) {
           <button className="btn btn-outline-dark mt-2"
             onClick={() => {
               setLoading(true);
-              downloadPdf(request)
+              downloadPdf(slip)
                 .finally(() => setLoading(false));
             }}>
             <i className="fas fa-download me-1"></i> Download PDF
           </button>
         )}
       </TableCell>
-    </MovementPassApprovalRow>
+    </EntrySlipApprovalRow>
   );
 }
