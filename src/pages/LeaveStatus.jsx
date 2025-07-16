@@ -36,9 +36,8 @@ const LeaveStatus = () => {
   };
 
   const getLeavesUsed = (leave) => {
-    const leavesUsed = [['CL', leave.clLeaves], ['PL', leave.plLeaves], ['RH', leave.rhLeaves], ['Other', leave.otherLeaves]];
-    return leavesUsed.map(([type, count]) => (
-      (count > 0) && (<span key={type} className="badge bg-success ms-1 me-1">{type}:{count}</span>)
+    return leave.leaveTypes.map((type) => (
+      (<span key={type} className="badge bg-success ms-1 me-1">{type}</span>)
     ))
   }
 
@@ -50,7 +49,8 @@ const LeaveStatus = () => {
           <tr>
             <th>Dates</th>
             <th>Leaves Used</th>
-            <th>Reason</th>
+            <th>Leaves Count</th>
+            <th style={{ width: "40%" }}>Reason</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -59,6 +59,7 @@ const LeaveStatus = () => {
             <tr key={leave.id}>
               <td>{leave.startDate} to {leave.endDate}</td>
               <td>{getLeavesUsed(leave)}</td>
+              <td>{leave.leaveCount}</td>
               <td>{leave.reason}</td>
               <td>{renderProgress(leave.status)}</td>
             </tr>

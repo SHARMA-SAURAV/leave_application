@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import ApplicationFormBox from '../components/ApplicationFormBox';
-import { WideInput } from '../components/FormControls';
+import { MultiSelectDropdown, WideInput } from '../components/FormControls';
 import { LabelNumberInput } from '../components/LabelCheckbox';
 
 const APPROVER_TYPES = ['FLA', 'SLA'];
@@ -15,18 +15,8 @@ const ApplyLeave = () => {
   const [approverList, setApproverList] = useState([]);
   const [currentApprover, setCurrentApprover] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedLeaves, setSelectedLeaves] = useState({
-    PL: 0,
-    CL: 0,
-    RH: 0,
-    Other: 0,
-  });
-
-  const totalLeaves =
-    selectedLeaves.PL +
-    selectedLeaves.CL +
-    selectedLeaves.RH +
-    selectedLeaves.Other;
+  const [leaveCount, setLeaveCount] = useState(0);
+  const [selectedLeaveTypes, setSelectedLeaveTypes] = useState([]);
 
   useEffect(() => {
     const fetchApprovers = async () => {
@@ -47,18 +37,20 @@ const ApplyLeave = () => {
     setCurrentApprover('');
   };
 
-  const handleLeavesChange = (type, val) => {
-    const updated = { ...selectedLeaves, [type]: parseInt(val) || 0 };
-    if (updated.PL > 0 && updated.CL > 0) updated.CL = 0;
-    setSelectedLeaves(updated);
-  };
+  const handleLeaveTypeChange = (value) => {
+    setSelectedLeaveTypes(value);
+  }
 
   const todayDate = new Date().toISOString().split('T')[0];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (totalLeaves <= 0) {
-      alert('Please select at least one type of leave.');
+    if (leaveCount <= 0) {
+      alert('Leave count must be greater than 0.');
+      return;
+    }
+    if(selectedLeaveTypes.indexOf("PL") != -1 && selectedLeaveTypes.indexOf("CL") != -1) {
+      alert("Cannot select both CL and PL leaves at once.");
       return;
     }
     setLoading(true);
@@ -69,10 +61,8 @@ const ApplyLeave = () => {
         reason,
         approverRole: approvalType,
         approverId: currentApprover,
-        plLeaves: selectedLeaves.PL,
-        clLeaves: selectedLeaves.CL,
-        rhLeaves: selectedLeaves.RH,
-        otherLeaves: selectedLeaves.Other,
+        leaveCount: leaveCount,
+        leaveTypes: selectedLeaveTypes,
       });
       alert('Leave applied successfully!');
       setStartDate('');
@@ -81,7 +71,7 @@ const ApplyLeave = () => {
       setApprovalType(APPROVER_TYPES[0]);
       setApproverList([]);
       setCurrentApprover('');
-      setSelectedLeaves({ PL: 0, CL: 0, RH: 0, Other: 0 });
+      setSelectedLeaveTypes([]);
     } catch (err) {
       alert('Failed to apply leave.');
       console.error(err);
@@ -164,45 +154,23 @@ const ApplyLeave = () => {
             </select>
           </WideInput>
         </div>
-
+      
         <label className="mb-2 fw-bold">Select Leave Types</label>
-        <LabelNumberInput
-          label="Privilege Leave (PL)"
-          inputName="plLeave"
-          value={selectedLeaves.PL}
-          onChange={(e) => handleLeavesChange('PL', e.target.value)}
-          disabled={selectedLeaves.CL > 0}
-          required
-        />
-        <LabelNumberInput
-          label="Casual Leave (CL)"
-          inputName="clLeave"
-          value={selectedLeaves.CL}
-          onChange={(e) => handleLeavesChange('CL', e.target.value)}
-          disabled={selectedLeaves.PL > 0}
-          required
-        />
-        <LabelNumberInput
-          label="Restricted Holiday (RH)"
-          inputName="rhLeave"
-          value={selectedLeaves.RH}
-          onChange={(e) => handleLeavesChange('RH', e.target.value)}
-          required
-        />
-        <LabelNumberInput
-          label="Others"
-          inputName="otherLeave"
-          value={selectedLeaves.Other}
-          onChange={(e) => handleLeavesChange('Other', e.target.value)}
-          required
+        <MultiSelectDropdown
+          options={[
+            "PL", "CL", "RH", "EL", "HPL", "ML", "SL",
+          ]}
+          selectedValues={selectedLeaveTypes}
+          onSelectionChange={handleLeaveTypeChange}
+          label="Leave Types"
         />
 
-        <div className="d-flex align-items-center mt-3 mb-4">
-          <span className="fw-semibold me-2 text-muted">Total Leaves:</span>
-          <span className={`badge fs-6 ${totalLeaves > 0 ? 'bg-success' : 'bg-secondary'}`}>
-            {totalLeaves}
-          </span>
-        </div>
+        <WideInput label={"Leaves Count"} forName={"leaves-count"}>
+          <input className="form-control" type="number" step={1} min={1}
+            onChange={(e) => setLeaveCount(e.target.value)}
+            required
+          />
+        </WideInput>
 
         <div className="d-grid">
           <button
