@@ -13,6 +13,12 @@ function TableCell({ children, className = "" }) {
 
 export function LeaveApprovalRow({ request, children }) {
 
+  const getLeavesUsed = (leave) => {
+    return leave.leaveTypes.map((type) => (
+      (<span key={type} className="badge bg-success ms-1 me-1">{type}</span>)
+    ))
+  }
+
   return (
     <tr>
       <TableCell>
@@ -45,19 +51,17 @@ export function LeaveApprovalRow({ request, children }) {
 
       <TableCell>
         <small title={request.reason}>
-          {request.reason.length > 30 ? `${request.reason.substring(0, 30)}...` : request.reason}
+          {request.reason}
         </small>
       </TableCell>
 
       <TableCell>
-        <small>
-          <div>CL: {request.clLeaves}</div>
-          <div>PL: {request.plLeaves}</div>
-          <div>RH: {request.rhLeaves}</div>
-          <div>Other: {request.otherLeaves}</div>
-        </small>
+        <div>{getLeavesUsed(request)}</div>
       </TableCell>
 
+      <TableCell>
+        <div>{request.leaveCount}</div>
+      </TableCell>
       {children}
     </tr>
   )

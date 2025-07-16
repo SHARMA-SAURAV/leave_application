@@ -78,7 +78,7 @@ const ApplyMovementPass = () => {
             value={date}
             required
             onChange={(e) => setDate(e.target.value)}
-            min={todayDate}
+            max={todayDate}
           />
         </WideInput>
 

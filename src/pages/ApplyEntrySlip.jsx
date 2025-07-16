@@ -54,7 +54,8 @@ const ApplyEntrySlip = () => {
   };
 
   const primaryBlue = 'rgb(13, 110, 253)';
-
+  // For setting constraints on date input
+  const todayDate = new Date().toISOString().split('T')[0];
   return (
     <div className="container my-5">
       <div
@@ -81,6 +82,7 @@ const ApplyEntrySlip = () => {
               value={form.date}
               onChange={handleChange}
               required
+              max={todayDate}
             />
           </div>
 

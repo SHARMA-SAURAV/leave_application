@@ -14,13 +14,17 @@ const HRPanel = () => {
   const [approvedLeaveRequests, setApprovedLeaveRequests] = useState([]);
   const [approvedMovementPasses, setApprovedMovementPasses] = useState([]);
   const [view, setView] = useState('pending');
-  const [entrySlipLoading, setEntrySlipLoading] = useState({});
+  const [__, setEntrySlipLoading] = useState({});
   const [_, setLeaveActionLoading] = useState({});
   const [activeTab, setActiveTab] = useState('entry');
 
   const fetchData = async () => {
     try {
       const entryRes = await api.get(view === 'pending' ? '/entry-slip/pending/hr' : '/entry-slip/approved');
+      const data = entryRes.data;
+      for (let slip of data) {
+        slip.loading = false;
+      }
       setEntrySlips(entryRes.data);
     } catch (err) {
       console.error('Error fetching HR data:', err);
@@ -103,6 +107,28 @@ const HRPanel = () => {
     count > 0 && <span className="badge bg-danger ms-1">{count}</span>
   );
 
+  const getLeavesUsed = (leave) => {
+    return leave.leaveTypes.map((type) => (
+      (<span key={type} className="badge bg-success ms-1 me-1">{type}</span>)
+    ))
+  }
+
+  const getEntrySlipButtons = (slip) => {
+    if (slip.loading) {
+      return (
+        <div className="text-center">
+          <strong>Please wait...</strong>
+        </div>
+      )
+    }
+    return (
+      <>
+        <button className="btn btn-success btn-sm me-2" onClick={() => handleEntrySlipAction(slip.id, 'approve')}>Approve</button>
+        <button className="btn btn-danger btn-sm" onClick={() => handleEntrySlipAction(slip.id, 'reject')}>Reject</button>
+      </>
+    );
+  }
+
   const renderTabContent = () => {
     if (activeTab === 'entry') {
       const data = view === 'pending' ? entrySlips : entrySlips;
@@ -128,10 +154,7 @@ const HRPanel = () => {
                     <td>{slip.reason}</td>
                     <td>
                       {view === 'pending' ? (
-                        <>
-                          <button className="btn btn-success btn-sm me-2" onClick={() => handleEntrySlipAction(slip.id, 'approve')}>Approve</button>
-                          <button className="btn btn-danger btn-sm" onClick={() => handleEntrySlipAction(slip.id, 'reject')}>Reject</button>
-                        </>
+                        getEntrySlipButtons(slip)
                       ) : (
                         <button className="btn btn-outline-dark btn-sm" onClick={() => downloadPDF('Entry Slip', [
                           ['Created By', slip.createdBy?.name || 'N/A'],
@@ -161,7 +184,13 @@ const HRPanel = () => {
           <table className="table table-striped">
             <thead className="table-dark">
               <tr>
-                <th>Employee</th><th>Email</th><th>Period</th><th>Reason</th><th>Type</th><th>Actions</th>
+                <th>Employee</th>
+                <th>Email</th>
+                <th>Period</th>
+                <th>Reason</th>
+                <th>Types</th>
+                <th>Count</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -174,7 +203,8 @@ const HRPanel = () => {
                     <td>{request.requestedBy?.email}</td>
                     <td>{request.startDate} to {request.endDate}</td>
                     <td>{request.reason}</td>
-                    <td>{request.leaveType}</td>
+                    <td>{getLeavesUsed(request)}</td>
+                    <td>{request.leaveCount}</td>
                     <td>
                       {view === 'pending' ? (
                         <>
@@ -186,7 +216,8 @@ const HRPanel = () => {
                           ['Name', request.requestedBy?.name],
                           ['Email', request.requestedBy?.email],
                           ['Dates', `${request.startDate} - ${request.endDate}`],
-                          ['Type', request.leaveType],
+                          ['Leave Types', request.leaveTypes.join(", ")],
+                          ['Leave Count', request.leaveCount],
                           ['Status', request.status],
                         ], `leave-${request.id}`)}>
                           Download PDF
@@ -252,27 +283,29 @@ const HRPanel = () => {
   };
 
   return (
-    <div className="container mt-4">
-      <h3 className="text-primary mb-3">HR Panel – {view === 'pending' ? 'Pending' : 'Approved'} Applications</h3>
+    <div>
+      <div className="container mt-4">
+        <h3 className="text-primary mb-3">HR Panel – {view === 'pending' ? 'Pending' : 'Approved'} Applications</h3>
+        <div className="mb-3">
+          <button className={`btn btn-${view === 'pending' ? 'primary' : 'outline-primary'} me-2`} onClick={() => setView('pending')}>Pending</button>
+          <button className={`btn btn-${view === 'approved' ? 'primary' : 'outline-primary'}`} onClick={() => setView('approved')}>Approved</button>
+        </div>
+        <ul className="nav nav-tabs mb-4">
+          <li className="nav-item">
+            <button className={`nav-link ${activeTab === 'entry' ? 'active' : ''}`} onClick={() => setActiveTab('entry')}>Entry Slips {getNotificationBadge(view === 'pending' ? entrySlips.length : 0)}</button>
+          </li>
+          <li className="nav-item">
+            <button className={`nav-link ${activeTab === 'leave' ? 'active' : ''}`} onClick={() => setActiveTab('leave')}>Leave Requests {getNotificationBadge(view === 'pending' ? leaveRequests.length : 0)}</button>
+          </li>
+          <li className="nav-item">
+            <button className={`nav-link ${activeTab === 'movement' ? 'active' : ''}`} onClick={() => setActiveTab('movement')}>Movement Passes {getNotificationBadge(view === 'pending' ? movementPasses.length : 0)}</button>
+          </li>
+        </ul>
 
-      <div className="mb-3">
-        <button className={`btn btn-${view === 'pending' ? 'primary' : 'outline-primary'} me-2`} onClick={() => setView('pending')}>Pending</button>
-        <button className={`btn btn-${view === 'approved' ? 'primary' : 'outline-primary'}`} onClick={() => setView('approved')}>Approved</button>
       </div>
-
-      <ul className="nav nav-tabs mb-4">
-        <li className="nav-item">
-          <button className={`nav-link ${activeTab === 'entry' ? 'active' : ''}`} onClick={() => setActiveTab('entry')}>Entry Slips {getNotificationBadge(view === 'pending' ? entrySlips.length : 0)}</button>
-        </li>
-        <li className="nav-item">
-          <button className={`nav-link ${activeTab === 'leave' ? 'active' : ''}`} onClick={() => setActiveTab('leave')}>Leave Requests {getNotificationBadge(view === 'pending' ? leaveRequests.length : 0)}</button>
-        </li>
-        <li className="nav-item">
-          <button className={`nav-link ${activeTab === 'movement' ? 'active' : ''}`} onClick={() => setActiveTab('movement')}>Movement Passes {getNotificationBadge(view === 'pending' ? movementPasses.length : 0)}</button>
-        </li>
-      </ul>
-
-      {renderTabContent()}
+      <div className="me-2 ms-2">
+        {renderTabContent()}
+      </div>
     </div>
   );
 };
