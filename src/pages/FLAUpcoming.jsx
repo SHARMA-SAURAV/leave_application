@@ -57,7 +57,7 @@ const FLAUpcoming = () => {
                 <th scope="col">ID</th>
                 <th scope="col">Dept</th>
                 <th scope="col">Reason</th>
-                <th scope="col">Leave Days</th>
+                <th scope="col">Leave Type</th>
                 <th scope="col">Substitute</th>
               </tr>
             </thead>

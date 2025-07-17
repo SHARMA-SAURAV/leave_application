@@ -4,15 +4,14 @@ import { FlaApprovalRow } from '../components/LeaveRequestTables';
 import { FlaPassApprovalRow } from '../components/MovementPassTables';
 import { leaveApproveApi } from '../services/leave';
 import { movementPassApproveApi } from '../services/move';
+import BaseTable from '../components/BaseTable';
+import { FlaEntrySlipApprovalRow } from '../components/EntrySlipTables';
 
 const FLAPanel = () => {
   const [entrySlips, setEntrySlips] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [movementPasses, setMovementPasses] = useState([]);
   const [slaUsers, setSlaUsers] = useState([]);
-  const [selectedSLA, setSelectedSLA] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [_, setLeaveActionLoading] = useState({});
   const [activeTab, setActiveTab] = useState('entry');
 
   const fetchData = async () => {
@@ -60,17 +59,12 @@ const FLAPanel = () => {
     fetchSLAs();
   }, []);
 
-  const handleSLAChange = (slipId, email) => {
-    setSelectedSLA((prev) => ({ ...prev, [slipId]: email }));
-  };
-
-  const handleEntrySlipAction = async (id, action) => {
-    setLoading(true);
+  const handleEntrySlipAction = async (id, action, slaId = 0) => {
     try {
       if (action === 'approve') {
-        const slaEmail = selectedSLA[id];
+        const slaEmail = slaId ? slaUsers.find(user => user.id === parseInt(slaId))?.email : '';
         if (!slaEmail) {
-          alert('Please select an SLA before approving.');
+          alert('Please select an SLA approver before approving the entry slip.');
           return;
         }
         await api.put(`/entry-slip/${action}/${id}`, null, {
@@ -79,45 +73,32 @@ const FLAPanel = () => {
             nextApproverEmail: slaEmail,
           },
         });
+        setEntrySlips((prev) => prev.filter((slip) => slip.id !== id));
       } else {
         await api.put(`/entry-slip/${action}/${id}?role=FLA`);
       }
       alert(`Entry slip ${action}ed successfully`);
-      fetchData();
     } catch (err) {
       console.error(`Failed to ${action} entry slip`, err);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleLeaveApproval = async (id, action, slaId = 0, substitute = '') => {
-    setLeaveActionLoading((prev) => ({ ...prev, [id]: true }));
-    try {
-      const result = await leaveApproveApi(id, 'fla', action, {
-        slaSelected: slaId,
-        substituteSelected: substitute,
-      });
-      if (result) {
-        setLeaveRequests((prev) => prev.filter((request) => request.id !== id));
-      }
-    } catch (err) {
-      console.error(`Failed to ${action} leave request`, err);
-    } finally {
-      setLeaveActionLoading((prev) => ({ ...prev, [id]: false }));
+    const result = await leaveApproveApi(id, 'fla', action, {
+      slaSelected: slaId,
+      substituteSelected: substitute,
+    });
+    if (result) {
+      setLeaveRequests((prev) => prev.filter((request) => request.id !== id));
     }
   };
 
   const handlePassApproval = async (id, action, slaId = 0) => {
-    try {
-      const result = await movementPassApproveApi(id, 'fla', action, {
-        slaSelected: slaId,
-      });
-      if (result) {
-        setMovementPasses((prev) => prev.filter((request) => request.id !== id));
-      }
-    } catch (err) {
-      console.error(`Failed to ${action} movement pass`, err);
+    const result = await movementPassApproveApi(id, 'fla', action, {
+      slaSelected: slaId,
+    });
+    if (result) {
+      setMovementPasses((prev) => prev.filter((request) => request.id !== id));
     }
   };
 
@@ -163,159 +144,46 @@ const FLAPanel = () => {
       </div>
       <div className="me-2 ms-2">
         {activeTab === 'entry' && (
-          <>
-            {/* <h4 className="text-secondary mb-3">Entry Slips</h4> */}
-            {entrySlips.length === 0 ? (
-              <p className="text-muted">No pending entry slips for FLA.</p>
-            ) : (
-              <div className="table-responsive mb-4">
-                <table className="table table-striped table-hover">
-                  <thead className="table-dark">
-                    <tr>
-                      <th className="text-center">Employee Name</th>
-                      <th className="text-center">Email</th>
-                      <th className="text-center">Department</th>
-                      <th className="text-center">Employee ID</th>
-                      <th className="text-center">Date</th>
-                      <th className="text-center">Time</th>
-                      <th className="text-center">Reason</th>
-                      <th className="text-center">SLA Approver</th>
-                      <th className="text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {entrySlips.map((slip) => (
-                      <tr key={slip.id}>
-                        <td className="align-middle text-center">{slip.createdBy?.name}</td>
-                        <td className="align-middle text-center">{slip.createdBy?.email}</td>
-                        <td className="align-middle text-center">{slip.createdBy?.department}</td>
-                        <td className="align-middle text-center">{slip.createdBy?.employeeId}</td>
-                        <td className="align-middle text-center">{slip.date}</td>
-                        <td className="align-middle text-center">{slip.inTime} - {slip.outTime}</td>
-                        <td className="align-middle text-center">{slip.reason}</td>
-                        <td className="align-middle text-center">
-                          <select
-                            className="form-select"
-                            value={selectedSLA[slip.id] || ''}
-                            onChange={(e) => handleSLAChange(slip.id, e.target.value)}
-                          >
-                            <option value="">-- Select SLA --</option>
-                            {slaUsers.map((sla) => (
-                              <option key={sla.email} value={sla.email}>
-                                {sla.name} ({sla.email})
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="align-middle text-center">
-                          <div className="d-flex justify-content-center gap-2">
-                            <button
-                              className="btn btn-success btn-sm"
-                              onClick={() => handleEntrySlipAction(slip.id, 'approve')}
-                              disabled={loading}
-                            >
-                              {loading ? (
-                                <span className="spinner-border spinner-border-sm me-2" />
-                              ) : (
-                                <i className="fas fa-check-circle me-1"></i>
-                              )}
-                              Approve
-                            </button>
-                            <button
-                              className="btn btn-danger btn-sm"
-                              onClick={() => handleEntrySlipAction(slip.id, 'reject')}
-                              disabled={loading}
-                            >
-                              {loading ? (
-                                <span className="spinner-border spinner-border-sm me-2" />
-                              ) : (
-                                <i className="fas fa-times me-1"></i>
-                              )}
-                              Reject
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </>
+          <BaseTable
+            columns={["Employee", "Email", "Department", "Date", "Times", "Reason", "SLA Approver", "Actions"]}
+            rows={
+              entrySlips.length === 0 ? (
+                <tr><td colSpan="8" className="text-center text-muted">No data found.</td></tr>
+              ) : (
+                entrySlips.map((slip) => (
+                  <FlaEntrySlipApprovalRow key={slip.id} slip={slip} action={handleEntrySlipAction} approvers={slaUsers} />
+                ))
+              )
+            }
+          />
         )}
         {activeTab === 'leave' && (
-          <>
-            {/* <h4 className="text-secondary mb-3">Leave Requests</h4> */}
-            {leaveRequests.length === 0 ? (
-              <p className="text-muted">No pending leave applications for FLA.</p>
-            ) : (
-              <div className="table-responsive">
-                <table className="table table-striped table-hover">
-                  <thead className="table-dark">
-                    <tr>
-                      <th>Employee</th>
-                      <th>Email</th>
-                      <th>ID</th>
-                      <th>Dept</th>
-                      <th>Leave Period</th>
-                      <th>Reason</th>
-                      <th>Leave Types</th>
-                      <th>Leave Count</th>
-                      <th>SLA Approver</th>
-                      <th>Substitute</th>
-                      <th className="text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leaveRequests.map((request) => (
-                      <FlaApprovalRow
-                        key={request.id}
-                        request={request}
-                        approvers={slaUsers}
-                        action={handleLeaveApproval}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </>
+          <BaseTable
+            columns={["Employee", "Email", "Department", "Dates", "Reason", "Types", "Count", "SLA Approver", "Substitute", "Actions"]}
+            rows={
+              leaveRequests.length === 0 ? (
+                <tr><td colSpan="10" className="text-center text-muted">No data found.</td></tr>
+              ) : (
+                leaveRequests.map((request) => (
+                  <FlaApprovalRow key={request.id} request={request} action={handleLeaveApproval} approvers={slaUsers} />
+                ))
+              )
+            }
+          />
         )}
         {activeTab === 'pass' && (
-          <>
-            {/* <h4 className="text-secondary mb-3">Movement Passes</h4> */}
-            {movementPasses.length === 0 ? (
-              <p className="text-muted">No pending movement passes for FLA.</p>
-            ) : (
-              <div className="table-responsive">
-                <table className="table table-striped table-hover">
-                  <thead className="table-dark">
-                    <tr>
-                      <th>Employee</th>
-                      <th>Email</th>
-                      <th>ID</th>
-                      <th>Dept</th>
-                      <th>Date</th>
-                      <th>Time Period</th>
-                      <th>Reason</th>
-                      <th>SLA Approver</th>
-                      <th className="text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {movementPasses.map((request) => (
-                      <FlaPassApprovalRow
-                        key={request.id}
-                        request={request}
-                        approvers={slaUsers}
-                        action={handlePassApproval}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </>
+          <BaseTable
+            columns={["Employee", "Email", "Department", "Date", "Time Period", "Reason", "SLA Approver", "Actions"]}
+            rows={
+              movementPasses.length === 0 ? (
+                <tr><td colSpan="8" className="text-center text-muted">No data found.</td></tr>
+              ) : (
+                movementPasses.map((pass) => (
+                  <FlaPassApprovalRow key={pass.id} request={pass} action={handlePassApproval} approvers={slaUsers} />
+                ))
+              )
+            }
+          />
         )}
       </div>
     </div>

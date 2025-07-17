@@ -34,10 +34,6 @@ export function LeaveApprovalRow({ request, children }) {
       </TableCell>
 
       <TableCell>
-        <small>{request.requestedBy.employeeId}</small>
-      </TableCell>
-
-      <TableCell>
         <small>{request.requestedBy.department}</small>
       </TableCell>
 
