@@ -42,6 +42,7 @@ import SLAUpcoming from './pages/SLAUpcoming';
 import HRUpcoming from './pages/HRUpcoming';
 import ApplyMovementPass from './pages/ApplyMovementPass';
 import MovementPassStatus from './pages/MovementPassStatus';
+import LeaveCalendar from './pages/LeaveCalendar';
 
 function App() {
   return (
@@ -66,6 +67,8 @@ function App() {
         <Route path="/leave-status" element={<LeaveStatus />} />
         <Route path="/movement-pass-status" element={<MovementPassStatus />} />
         <Route path="/entry-slip" element={<ApplyEntrySlip />} />
+        <Route path="/calender" element={<LeaveCalendar />} />
+
       </Routes>
     </Router>
   );
