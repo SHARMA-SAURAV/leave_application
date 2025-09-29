@@ -167,6 +167,21 @@ const Dashboard = () => {
         </div>
       </div>
     </div>
+
+
+
+        <div className="col-md-4">
+      <div
+        className="card border-0 shadow-sm h-100"
+        style={{ cursor: 'pointer', borderRadius: '16px' }}
+        onClick={() => navigate('/leave-calender')}
+      >
+        <div className="card-body d-flex align-items-center gap-3">
+          <i className="fas fa-calendar-alt fa-lg" style={{ color: 'rgb(13, 110, 253)' }}></i>
+          <h6 className="mb-0 text-dark">Attendance | Leave Record</h6>
+        </div>
+      </div>
+    </div>
   </div>
 )}
 

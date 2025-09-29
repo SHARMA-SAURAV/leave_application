@@ -43,6 +43,7 @@ import HRUpcoming from './pages/HRUpcoming';
 import ApplyMovementPass from './pages/ApplyMovementPass';
 import MovementPassStatus from './pages/MovementPassStatus';
 import LeaveCalendar from './pages/LeaveCalendar';
+import AttendanceComponent from './components/AttendanceComponent';
 
 function App() {
   return (
@@ -62,6 +63,7 @@ function App() {
         <Route path="/fla-dashboard" element={<FLAPanel />} />
         <Route path="/fla-upcoming" element={<FLAUpcoming />} />
         <Route path="/sla-upcoming" element={<SLAUpcoming />} />
+        <Route path="/leave-calender" element={<AttendanceComponent />} />
         <Route path="/hr-upcoming" element={<HRUpcoming />} />
         <Route path="/entry-slip-status" element={<EntrySlipStatus />} />
         <Route path="/leave-status" element={<LeaveStatus />} />
