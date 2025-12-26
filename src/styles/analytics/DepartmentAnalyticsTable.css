@@ -1,0 +1,96 @@
+.dept-table-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 18px 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.dept-table-header {
+  gap: 12px;
+}
+
+.dept-table-title {
+  font-size: 25px;
+  font-weight: 600;
+  color: #111827;
+  letter-spacing: 0.01em;
+}
+
+.dept-table-subtitle {
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.dept-table-pill {
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #f3f4ff;
+  color: #4338ca;
+  font-weight: 600;
+}
+
+/* Table styling */
+
+.dept-table thead th {
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background-color: #f9fafb;
+}
+
+.dept-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.dept-table tbody td,
+.dept-table tfoot th,
+.dept-table tfoot td {
+  font-size: 16px;
+  color: #111827;
+}
+
+.dept-table tfoot {
+  background-color: #f3f4f6;
+  border-top: 1px solid #e5e7eb;
+}
+
+.dept-name {
+  font-weight: 500;
+  color: #111827;
+}
+
+.bg-soft-primary {
+  background-color: rgba(37, 99, 235, 0.08);
+}
+
+.bg-soft-danger {
+  background-color: rgba(239, 68, 68, 0.08);
+}
+
+.dept-ratio {
+  font-size: 11px;
+}
+
+
+
+/* Responsive spacing */
+
+@media (max-width: 768px) {
+  .dept-table-card {
+    padding: 14px 12px;
+    border-radius: 12px;
+  }
+
+  .dept-table-title {
+    font-size: 14px;
+  }
+
+  .dept-table-subtitle {
+    font-size: 11px;
+  }
+}
+

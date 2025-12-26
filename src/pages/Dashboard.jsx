@@ -226,6 +226,27 @@ const Dashboard = () => {
         </div>
       </div>
     </div>
+
+
+
+<div className="col-md-4">
+  <div
+    className="card border-0 shadow-sm h-100"
+    style={{ cursor: 'pointer', borderRadius: '16px' }}
+    onClick={() => navigate('/attendance-analytics')}
+  >
+    <div className="card-body d-flex align-items-center gap-3">
+      <i className="fas fa-chart-line fa-lg"
+         style={{ color: 'rgb(13, 110, 253)' }}></i>
+      <h6 className="mb-0 text-dark">Attendance Analytics</h6>
+    </div>
+  </div>
+</div>
+
+
+
+
+
   </div>
 )}
 

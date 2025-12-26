@@ -1,0 +1,102 @@
+.matrix-container {
+  padding: 20px;
+  background: #f8f9fa;
+  overflow-y: auto;
+  max-height: 500px;
+}
+
+.filters {
+  margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.filters select {
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #ddd;
+}
+
+.matrix-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 1200px;
+}
+
+.matrix-table th,
+.matrix-table td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.matrix-table thead th {
+  background: #0d6efd;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.sticky-col {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 3;
+  min-width: 160px;
+  text-align: left;
+  padding-left: 10px;
+}
+
+.emp-name {
+  font-weight: 500;
+}
+
+/* Cell colors */
+.leave-cell {
+  background-color: #ffeeba;
+}
+
+.absent-cell {
+  background-color: #f8d7da;
+  color: #721c24;
+  font-weight: bold;
+}
+
+.present-cell {
+  background-color: #ffffff;
+}
+
+/* Legend */
+.legend {
+  margin-top: 15px;
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+}
+
+.legend-box {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.legend-box.leave {
+  background: #ffeeba;
+}
+
+.legend-box.absent {
+  background: #f8d7da;
+}
+
+.legend-box.present {
+  background: #ffffff;
+  border: 1px solid #ccc;
+}

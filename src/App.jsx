@@ -44,6 +44,7 @@ import ApplyMovementPass from './pages/ApplyMovementPass';
 import MovementPassStatus from './pages/MovementPassStatus';
 import LeaveCalendar from './pages/LeaveCalendar';
 import AttendanceComponent from './components/AttendanceComponent';
+import AttendanceAnalytics from './pages/AttendanceAnalytics ';
 
 function App() {
   return (
@@ -70,6 +71,7 @@ function App() {
         <Route path="/movement-pass-status" element={<MovementPassStatus />} />
         <Route path="/entry-slip" element={<ApplyEntrySlip />} />
         <Route path="/calender" element={<LeaveCalendar />} />
+        <Route path="/attendance-analytics" element={<AttendanceAnalytics  />} />
 
       </Routes>
     </Router>
