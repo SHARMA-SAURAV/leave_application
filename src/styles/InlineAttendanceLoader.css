@@ -1,0 +1,204 @@
+/* Overlay: frosted glass with subtle gradient and depth */
+.inline-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+
+  /* softer tint with blur */
+  background: linear-gradient(180deg, rgba(10,11,13,0.18), rgba(255,255,255,0.04));
+  backdrop-filter: blur(6px) saturate(110%);
+  -webkit-backdrop-filter: blur(6px) saturate(110%);
+}
+
+/* decorative vignette */
+.inline-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.06), transparent 35%);
+}
+
+/* Main loader box: glass card with lift */
+.inline-loader-container {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(250,250,252,0.92));
+  border: 1px solid rgba(16,24,40,0.06);
+  border-radius: 14px;
+  padding: 28px 36px;
+  min-width: 380px;
+  max-width: calc(100% - 48px);
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(2,6,23,0.12), 0 2px 6px rgba(2,6,23,0.05);
+  transform-origin: center;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+/* subtle lift on hover (micro-interaction) */
+.inline-loader-container:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 50px rgba(2,6,23,0.14);
+}
+
+/* Decorative ring behind spinner */
+.inline-loader-container::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  top: -34px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(37,99,235,0.12), transparent 30%),
+              radial-gradient(circle at 70% 70%, rgba(16,185,129,0.04), transparent 35%);
+  filter: blur(10px);
+  opacity: 0.9;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Spinner: larger, layered, subtle glow */
+.spinner {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  z-index: 1;
+}
+
+/* Outer ring */
+.spinner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(#2563eb 0deg, #60a5fa 120deg, rgba(37,99,235,0.12) 220deg, transparent 360deg);
+  mask: radial-gradient(farthest-side, transparent calc(100% - 8px), black calc(100% - 7px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), black calc(100% - 7px));
+  animation: spin 1s linear infinite;
+  box-shadow: 0 6px 20px rgba(37,99,235,0.08), inset 0 -2px 6px rgba(0,0,0,0.04);
+}
+
+/* Inner dot for contrast */
+.spinner::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fff, #f3f4f6);
+  box-shadow: 0 2px 6px rgba(2,6,23,0.12);
+}
+
+/* Text refinements */
+.loader-title {
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+  font-size: 1.05rem;
+  letter-spacing: -0.2px;
+  z-index: 1;
+}
+
+.loader-subtitle {
+  font-size: 0.92rem;
+  color: #475569;
+  margin-bottom: 14px;
+  z-index: 1;
+}
+
+/* Context row improved spacing */
+.context-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 0.9rem;
+  color: #374151;
+  margin-bottom: 12px;
+  align-items: center;
+  z-index: 1;
+}
+
+/* Progress: gradient + animated stripes */
+.progress-wrapper {
+  margin-top: 8px;
+  z-index: 1;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+/* background track */
+.progress-bar {
+  height: 10px;
+  background: linear-gradient(90deg, rgba(229,231,235,0.9), rgba(243,244,246,0.9));
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.5);
+}
+
+/* fill: gradient + animated diagonal stripes */
+.progress-fill {
+  height: 100%;
+  width: 30%; /* initial, controlled by inline style in JS */
+  background: linear-gradient(90deg, #2563eb, #60a5fa);
+  position: relative;
+  transition: width 400ms cubic-bezier(.2,.9,.2,1);
+}
+
+/* animated stripes layer */
+.progress-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(45deg, rgba(255,255,255,0.14) 25%, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.14) 75%, rgba(255,255,255,0.06) 75%, rgba(255,255,255,0.06) 100%);
+  background-size: 28px 28px;
+  opacity: 0.18;
+  animation: stripeMove 1.8s linear infinite;
+  border-radius: 999px;
+}
+
+/* small success tint when complete */
+.progress-fill.complete {
+  box-shadow: 0 6px 18px rgba(37,99,235,0.14);
+}
+
+/* animations */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes stripeMove {
+  from { background-position: 0 0; }
+  to { background-position: 56px 0; }
+}
+
+/* Loading text / no-results (if used inside loader) */
+.no-results {
+  color: #64748b;
+  padding: 14px 8px;
+  text-align: center;
+}
+
+/* Responsive tweaks */
+@media (max-width: 520px) {
+  .inline-loader-container {
+    padding: 20px;
+    min-width: unset;
+    width: calc(100% - 32px);
+    border-radius: 12px;
+  }
+  .spinner { width: 46px; height: 46px; }
+  .inline-loader-container::after { display: none; }
+}
