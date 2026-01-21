@@ -1,6 +1,8 @@
 import axios from "axios";
 const instance = axios.create({
-  baseURL: 'http://localhost:8083/api',
+  baseURL: 'http://10.248.0.36:8083/api',
+  // baseURL: 'http://localhost:8083/api',
+  // baseURL: 'https://leave-applicaiton-latest.onrender.com/api',
 });
 
 instance.interceptors.request.use(
@@ -12,5 +14,4 @@ instance.interceptors.request.use(
         }
     return config;
   });
-
   export default instance;

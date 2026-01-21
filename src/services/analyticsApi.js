@@ -39,3 +39,5 @@ export const getDepartmentAnalytics = () =>
 
 export const getMonthlyAttendanceMatrix  = (year, month) =>
   api.get(`/attendance/analytics/monthly-matrix?year=${year}&month=${month}`);
+export const getYearlyData = (year, force=false) =>
+  api.post(`/attendance/syncYear?year=${year}&force=${force}`);
