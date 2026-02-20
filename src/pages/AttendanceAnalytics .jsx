@@ -96,7 +96,7 @@ const AttendanceAnalytics = () => {
 
       setMessage(`✅ Full year ${year} sync started`);
     } catch (err) {
-      setMessage("❌ Year sync failed");
+      // setMessage("❌ Year sync failed");
     } finally {
       setLoading(false);
     }

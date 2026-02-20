@@ -34,7 +34,7 @@ export function UserSelect({ users, label = "", inputName, value, onChange }) {
 // options is a list of objects with 'value' and 'label' properties
 export function MultiSelectDropdown({
   options,
-  selectedValues,
+  selectedValue,
   onSelectionChange,
   label,
   placeholder = 'Select options...',
@@ -42,13 +42,13 @@ export function MultiSelectDropdown({
   maxHeight = '200px',
   className = '',
   disabled = false,
-  showSelectedCount = true,
-}) {
-  const dropdownRef = useRef(null);
+  // showSelectedCount = true,
+})  {
 
+  const dropdownRef = useRef(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Click outside handler
+  // Close on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -63,28 +63,18 @@ export function MultiSelectDropdown({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isDropdownOpen]);
 
-  const handleToggle = (value) => {
-    const newSelection = selectedValues.includes(value)
-      ? selectedValues.filter(item => item !== value)
-      : [...selectedValues, value];
-
-    onSelectionChange(newSelection);
+  // Select only one
+  const handleSelect = (value) => {
+    onSelectionChange(value);
+    setIsDropdownOpen(false);
   };
 
   const getDisplayText = () => {
-    if (selectedValues.length === 0) {
-      return placeholder;
-    }
-
-    if (showSelectedCount && selectedValues.length > 2) {
-      return `${selectedValues.length} option(s) selected`;
-    }
-
-    return selectedValues.join(', ');
+    return selectedValue || placeholder;
   };
 
   return (
-    <div className={`mb-3 ${className}`} ref={dropdownRef}>
+    <div className={`mb-3 position-relative ${className}`} ref={dropdownRef}>
       {label && <label className="form-label fw-semibold">{label}</label>}
 
       <button
@@ -93,7 +83,7 @@ export function MultiSelectDropdown({
         onClick={() => !disabled && setIsDropdownOpen(prev => !prev)}
         disabled={disabled}
       >
-        <span className={selectedValues.length ? '' : 'text-muted'}>
+        <span className={selectedValue ? '' : 'text-muted'}>
           <i className={`${iconClass} me-2`}></i>
           {getDisplayText()}
         </span>
@@ -114,11 +104,12 @@ export function MultiSelectDropdown({
           {options.map((option) => (
             <div key={option} className="form-check">
               <input
-                type="checkbox"
+                type="radio"
+                name="singleSelect"
                 className="form-check-input"
                 id={`option-${option}`}
-                checked={selectedValues.includes(option)}
-                onChange={() => handleToggle(option)}
+                checked={selectedValue === option}
+                onChange={() => handleSelect(option)}
               />
               <label className="form-check-label" htmlFor={`option-${option}`}>
                 {option}
@@ -128,24 +119,19 @@ export function MultiSelectDropdown({
         </div>
       )}
 
-      {selectedValues.length > 0 && (
-        <div className="mt-2 d-flex flex-wrap gap-2">
-          {selectedValues.map((value) => (
-            <span
-              key={value}
-              className="badge bg-primary px-3 py-2 rounded-pill d-flex align-items-center"
-            >
-              {value}
-              <button
-                type="button"
-                className="btn-close btn-close-white btn-sm ms-2"
-                onClick={() => handleToggle(value)}
-                style={{ fontSize: '0.6rem' }}
-              ></button>
-            </span>
-          ))}
+      {selectedValue && (
+        <div className="mt-2">
+          <span className="badge bg-primary px-3 py-2 rounded-pill d-inline-flex align-items-center">
+            {selectedValue}
+            <button
+              type="button"
+              className="btn-close btn-close-white btn-sm ms-2"
+              onClick={() => onSelectionChange("")}
+              style={{ fontSize: '0.6rem' }}
+            ></button>
+          </span>
         </div>
       )}
     </div>
   );
-};
+}

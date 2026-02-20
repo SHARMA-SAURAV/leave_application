@@ -54,6 +54,11 @@ export function LeaveInformationRow({ request }) {
 
       <TableCell>
         {getLeavesUsed(request)}
+        <strong>
+          <small className="text-muted">{request.leaveCount} days</small>
+        </strong>
+
+        {/* {console.log("Request data:", request.leaveCount)}  */}
       </TableCell>
       <TableCell>
         <div className="text-center">

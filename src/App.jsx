@@ -22,6 +22,7 @@ import AttendanceComponent from './components/AttendanceComponent';
 import AttendanceAnalytics from './pages/AttendanceAnalytics ';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
+import HRLeaveData from './pages/HRLeaveData';
 
 // function App() {
 //   return (
@@ -135,6 +136,7 @@ function App() {
         <Route path="/sla-upcoming" element={<ProtectedRoute><SLAUpcoming /></ProtectedRoute>} />
         <Route path="/leave-calender" element={<ProtectedRoute><AttendanceComponent /></ProtectedRoute>} />
         <Route path="/hr-upcoming" element={<ProtectedRoute><HRUpcoming /></ProtectedRoute>} />
+        <Route path="/hr-leaveData" element={<ProtectedRoute><HRLeaveData /></ProtectedRoute>} />
         <Route path="/entry-slip-status" element={<ProtectedRoute><EntrySlipStatus /></ProtectedRoute>} />
         <Route path="/leave-status" element={<ProtectedRoute><LeaveStatus /></ProtectedRoute>} />
         <Route path="/movement-pass-status" element={<ProtectedRoute><MovementPassStatus /></ProtectedRoute>} />
