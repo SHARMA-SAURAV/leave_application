@@ -149,6 +149,7 @@ useEffect(() => {
   }, [startDate, endDate, holidays]);
 
   const todayDate = new Date().toISOString().split('T')[0];
+  const threeDaysAgo = new Date(new Date().setDate(new Date().getDate() - 3)).toISOString().split('T')[0];
 
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
@@ -287,7 +288,7 @@ useEffect(() => {
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             required
-            min={todayDate}
+            min={threeDaysAgo}
           />
         </WideInput>
 
@@ -299,7 +300,7 @@ useEffect(() => {
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
             required
-            min={startDate || todayDate}
+            min={startDate || threeDaysAgo}
           />
         </WideInput>
 

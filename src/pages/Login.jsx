@@ -33,7 +33,7 @@ const Login = () => {
       className="d-flex justify-content-center align-items-center"
       style={{
         minHeight: '100vh',
-        background: 'linear-gradient(to right, #e0f2ff, #f0f8ff)',
+        background: 'linear-gradient(to right, #f0f7ff, #f8fbff)',
         padding: '2rem',
       }}
     >
@@ -44,32 +44,34 @@ const Login = () => {
           maxWidth: '430px',
           borderRadius: '20px',
           backgroundColor: '#ffffff',
+          border: '1px solid rgba(0, 48, 135, 0.1)',
         }}
       >
         <div className="text-center mb-4">
           <i
             className="fa-solid fa-user-shield fa-3x"
-            style={{ color: 'rgb(13, 110, 253)' }}
+            style={{ color: '#0056b3' }}
           ></i>
-          <h2 className="mt-2" style={{ color: '#333' }}>
+          <h2 className="mt-2" style={{ color: '#1a1a1a' }}>
             Sign In
           </h2>
-          <p style={{ fontSize: '14px', color: '#666' }}>
+          <p style={{ fontSize: '14px', color: '#6b7280' }}>
             Access your account
           </p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label className="form-label fw-semibold">Email</label>
+            <label className="form-label fw-semibold" style={{ color: '#1e3a8a' }}>Email</label>
             <div className="input-group">
-              <span className="input-group-text bg-light border-0">
-                <i className="fas fa-envelope" style={{ color: 'rgb(13, 110, 253)' }}></i>
+              <span className="input-group-text bg-white border-0" style={{ borderColor: '#e2e8f0' }}>
+                <i className="fas fa-envelope" style={{ color: '#0056b3' }}></i>
               </span>
               <input
                 type="email"
                 name="email"
-                className="form-control"
+                className="form-control border-start-0 shadow-sm"
+                style={{ borderColor: '#e2e8f0' }}
                 placeholder="you@example.com"
                 onChange={handleChange}
                 required
@@ -78,15 +80,16 @@ const Login = () => {
           </div>
 
           <div className="mb-4">
-            <label className="form-label fw-semibold">Password</label>
+            <label className="form-label fw-semibold" style={{ color: '#1e3a8a' }}>Password</label>
             <div className="input-group">
-              <span className="input-group-text bg-light border-0">
-                <i className="fas fa-lock" style={{ color: 'rgb(13, 110, 253)' }}></i>
+              <span className="input-group-text bg-white border-0" style={{ borderColor: '#e2e8f0' }}>
+                <i className="fas fa-lock" style={{ color: '#0056b3' }}></i>
               </span>
               <input
                 type="password"
                 name="password"
-                className="form-control"
+                className="form-control border-start-0 shadow-sm"
+                style={{ borderColor: '#e2e8f0' }}
                 placeholder="Enter password"
                 onChange={handleChange}
                 required
@@ -98,10 +101,14 @@ const Login = () => {
             type="submit"
             className="btn w-100"
             style={{
-              backgroundColor: 'rgb(13, 110, 253)',
-              color: '#fff',
-              fontWeight: 'bold',
-              borderRadius: '8px',
+              background: 'linear-gradient(135deg, #0056b3 0%, #0066cc 100%)',
+              color: '#ffffff',
+              fontWeight: '600',
+              borderRadius: '12px',
+              border: 'none',
+              boxShadow: '0 4px 12px rgba(0, 48, 135, 0.3)',
+              padding: '12px 24px',
+              fontSize: '1rem'
             }}
           >
             Login
@@ -109,12 +116,13 @@ const Login = () => {
 
           <div className="text-center mt-3">
             <Link to="/forgot-password" className="text-decoration-none">
-              <small style={{ color: 'rgb(13, 110, 253)' }}>Forgot password?</small>
+              <small style={{ color: '#1e40af' }}>Forgot password?</small>
             </Link>
           </div>
         </form>
       </div>
     </div>
+    
   );
 };
 

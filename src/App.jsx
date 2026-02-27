@@ -23,6 +23,7 @@ import AttendanceAnalytics from './pages/AttendanceAnalytics ';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
 import HRLeaveData from './pages/HRLeaveData';
+import Footer from './components/Footer';
 
 // function App() {
 //   return (
@@ -146,6 +147,7 @@ function App() {
 
         {/* repeat for ALL secure pages */}
       </Routes>
+      <Footer />
     </Router>
   );
 }
